@@ -119,7 +119,7 @@ export function BoardApp({ initialCreate = false }: { initialCreate?: boolean })
       .map((coin) => ({ coin, vol: vol.get(coin.token.toLowerCase()) ?? 0n }))
       .filter((x) => x.vol > 0n)
       .sort((a, b) => (b.vol > a.vol ? 1 : b.vol < a.vol ? -1 : 0))
-      .slice(0, 5);
+      .slice(0, 6);
   }, [coins, activity]);
 
   return (
@@ -156,7 +156,7 @@ export function BoardApp({ initialCreate = false }: { initialCreate?: boolean })
             {trending.map((t, i) => (
               <button className="trend-card" key={t.coin.token} onClick={() => router.push(`/token/${t.coin.token}`)}>
                 <span className="trend-rank">#{i + 1}</span>
-                <CoinAvatar symbol={t.coin.symbol} image={metas[t.coin.token.toLowerCase()]?.image} />
+                <CoinAvatar className="trend-avatar" symbol={t.coin.symbol} image={metas[t.coin.token.toLowerCase()]?.image ?? tokenImage(t.coin.symbol)} />
                 <span className="trend-main">
                   <b>{t.coin.name}</b>
                   <small>${t.coin.symbol}</small>
