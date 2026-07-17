@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
+import { useEffect, useState } from "react";
 import {
   EXPLORER,
   FAUCET,
@@ -13,6 +15,7 @@ import {
 import { useArcPadData, useWallet } from "./lib/useArcPad";
 import { useMeta } from "./lib/useMeta";
 import { CoinAvatar } from "./components/avatar";
+import { ShaderBackground } from "./components/shader-background";
 import {
   ArrowRightIcon,
   ExternalLinkIcon,
@@ -85,6 +88,27 @@ function LockIcon() {
   );
 }
 
+function LiveLaunchCard({ symbol, name, baseCap, time, target, accent, image }: { symbol: string; name: string; baseCap: number; time: string; target: number; accent: string; image: string }) {
+  const [progress, setProgress] = useState(Math.max(1, target - 9));
+  const [cap, setCap] = useState(baseCap * .92);
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setProgress((value) => value >= target ? Math.max(1, target - 9) : Math.min(target, value + .12 + Math.random() * .34));
+      setCap((value) => value >= baseCap ? baseCap * .92 : Math.min(baseCap, value + baseCap * (.002 + Math.random() * .005)));
+    }, 720);
+    return () => window.clearInterval(timer);
+  }, [baseCap, target]);
+  return (
+    <div className="graduated-token" style={{ "--token-accent": accent, "--bonding-progress": `${progress}%` } as React.CSSProperties}>
+      <div className="token-art"><Image src={image} alt={`${name} token artwork`} fill sizes="(max-width: 640px) 45vw, 280px" /><i /></div>
+      <div className="token-info"><span className="graduated-badge">BONDING LIVE</span><strong>{name}</strong><small>${symbol}</small></div>
+      <div className="token-metrics"><span><b>${cap.toFixed(1)}k</b> MC</span><span>{time}</span></div>
+      <div className="graduated-progress"><div><i><b /><b /><b /><b /></i></div><span>{progress.toFixed(1)}%</span></div>
+      <div className="token-lock"><span>CURVE ACTIVE</span><span>0x8eA7...Be131</span></div>
+    </div>
+  );
+}
+
 export default function Landing() {
   const wallet = useWallet();
   const { coins, loading } = useArcPadData();
@@ -104,28 +128,30 @@ export default function Landing() {
   return (
     <main className="app">
       <Notice />
-      <Topbar wallet={wallet} />
+      <Topbar wallet={wallet} landing />
 
       <section className="hero">
+        <ShaderBackground />
         <div className="shell hero-inner">
           <span className="hero-badge rise d1">
             <i className="dot" />
-            <b>Live on Arc testnet</b> · USDC-native launches
+            <b>Live on Arc Testnet</b> · Powered by USDC
           </span>
+          <span className="hero-eyebrow rise d1">The meme launchpad built natively on Arc</span>
           <h1 className="rise d2">
-            Launch memes.<br />
-            <span>Program the money.</span>
+            Launch culture.<br />
+            <span>Program value.</span>
           </h1>
           <p className="lede rise d3">
-            Every coin on ArcPad sells on a USDC bonding curve, routes its
-            trading fees through a vault you program, and graduates into DEX
-            liquidity that nobody can pull. The contract enforces all of it.
+            Create and trade tokens through transparent USDC bonding curves.
+            Route trading fees into programmable vaults, then graduate into
+            permanently locked DEX liquidity—all enforced onchain.
           </p>
           <div className="hero-ctas rise d3">
             <Link className="btn btn-gold btn-lg" href="/app">
-              Launch app <span className="arr"><ArrowRightIcon /></span>
+              Explore launches <span className="arr"><ArrowRightIcon /></span>
             </Link>
-            <Link className="btn btn-outline btn-lg" href="/create">Create a coin</Link>
+            <Link className="btn btn-outline btn-lg" href="/create">Launch a token</Link>
           </div>
           <div className="trust-row rise d4">
             <a
@@ -134,35 +160,36 @@ export default function Landing() {
               target="_blank"
               rel="noreferrer"
             >
-              <CheckIcon /> Contract verified on Arcscan
+              <CheckIcon /> Verified smart contract
             </a>
-            <span className="trust-chip"><LockIcon /> LP locked at graduation</span>
-            <span className="trust-chip">USDC-native · chain id 5042002</span>
+            <span className="trust-chip"><LockIcon /> Liquidity locked at graduation</span>
+            <span className="trust-chip">USDC-native · Arc Testnet</span>
           </div>
 
           <div className="stat-tiles rise d5">
             <div className="stat-tile">
               <strong>{loading ? "…" : totals.coins}</strong>
-              <span>Coins launched</span>
+              <span>Tokens launched</span>
             </div>
             <div className="stat-tile">
               <strong>{loading ? "…" : fmtUsd(totals.raised)}</strong>
-              <span>USDC on curves</span>
+              <span>USDC raised</span>
             </div>
             <div className="stat-tile">
               <strong>{loading ? "…" : totals.graduated}</strong>
-              <span>Graduated</span>
+              <span>Tokens graduated</span>
             </div>
           </div>
 
           {featured && (
             <div className="feat-card rise d5">
+              <span className="feat-kicker">Featured launch</span>
               <div className="feat-id">
                 <CoinAvatar symbol={featured.symbol} image={metas[featured.token.toLowerCase()]?.image} />
                 <div>
                   <strong>{featured.name}</strong>
                   <span className="mono">
-                    ${featured.symbol} · {(PRESETS[featured.preset] ?? PRESETS[0]).name} vault
+                    ${featured.symbol} · {(PRESETS[featured.preset] ?? PRESETS[0]).name === "Burn" ? "Buyback & Burn" : (PRESETS[featured.preset] ?? PRESETS[0]).name} Vault
                   </span>
                 </div>
               </div>
@@ -180,12 +207,12 @@ export default function Landing() {
                   <b>{fmtUsd(featured.realUsdc)}</b>
                 </div>
                 <div>
-                  <span>Curve</span>
+                  <span>Bonding curve</span>
                   <b>{(Number(featured.progressBps) / 100).toFixed(1)}%</b>
                 </div>
               </div>
               <Link className="btn btn-primary" href="/app">
-                Trade <span className="arr"><ArrowRightIcon /></span>
+                View market <span className="arr"><ArrowRightIcon /></span>
               </Link>
             </div>
           )}
@@ -202,47 +229,75 @@ export default function Landing() {
             <div className="flow-grid">
               <div className="flow-step">
                 <span className="flow-num">01</span>
+                <span className="flow-label">SET THE RULES</span>
+                <div className="step-visual visual-create" aria-hidden="true">
+                  <span className="token-core">A</span>
+                  <i className="orbit orbit-one" />
+                  <i className="orbit orbit-two" />
+                  <i className="launch-pulse" />
+                </div>
                 <b>Create</b>
                 <p>
-                  Name it, pick a ticker, choose a vault and a graduation target
-                  from 3k to 25k USDC. One transaction deploys the token and
-                  opens its curve.
+                  Choose a name, ticker, fee vault and a 3k–25k USDC target.
+                  One transaction launches the token and opens its curve.
                 </p>
                 <span className="fee">$0.01 + GAS</span>
               </div>
               <div className="flow-step">
                 <span className="flow-num">02</span>
+                <span className="flow-label">DISCOVER PRICE</span>
+                <div className="step-visual visual-trade" aria-hidden="true">
+                  <i className="trade-grid" />
+                  <i className="trade-line" />
+                  <i className="trade-dot" />
+                  <span className="trade-usdc">USDC</span>
+                </div>
                 <b>Trade</b>
                 <p>
-                  800M of the 1B supply sells on a constant-product curve
-                  denominated in USDC. Quotes, prices and progress come straight
-                  from the contract.
+                  800M tokens trade on a transparent USDC bonding curve. Every
+                  quote, price and progress update comes directly on-chain.
                 </p>
                 <span className="fee">1.5% PER TRADE</span>
               </div>
               <div className="flow-step">
                 <span className="flow-num">03</span>
+                <span className="flow-label">PROGRAM FEES</span>
+                <div className="step-visual visual-route" aria-hidden="true">
+                  <i className="route-source" />
+                  <i className="route-line route-a" />
+                  <i className="route-line route-b" />
+                  <i className="route-line route-c" />
+                  <i className="route-node node-a" />
+                  <i className="route-node node-b" />
+                  <i className="route-node node-c" />
+                </div>
                 <b>Route</b>
                 <p>
-                  1% of every trade flows to your vault preset, 0.5% to the
-                  platform. Recipients claim their USDC from the contract
-                  whenever they want.
+                  Every trade routes 1% to your chosen vault and 0.5% to the
+                  platform. Recipients claim USDC directly from the contract.
                 </p>
                 <span className="fee">1% TO YOUR VAULT</span>
               </div>
               <div className="flow-step">
                 <span className="flow-num">04</span>
+                <span className="flow-label">LOCK LIQUIDITY</span>
+                <div className="step-visual visual-graduate" aria-hidden="true">
+                  <i className="liquidity-ring" />
+                  <i className="lock-body" />
+                  <i className="lock-loop" />
+                  <i className="lock-wave" />
+                </div>
                 <b>Graduate</b>
                 <p>
-                  At the target, the remaining 200M tokens plus the raise become
-                  full-range UNITFLOW liquidity at the same price, and the LP
-                  NFT locks in the contract.
+                  At the target, 200M tokens and the USDC raise become UNITFLOW
+                  liquidity. The LP position is then locked permanently.
                 </p>
                 <span className="fee">LP LOCKED FOREVER</span>
               </div>
             </div>
 
             <div className="curve-panel">
+              <div className="curve-ambient" aria-hidden="true"><i /><i /><i /></div>
               <div className="curve-head">
                 <span>BONDING CURVE TO GRADUATION</span>
                 <span className="live"><i className="dot" />LIVE</span>
@@ -252,7 +307,7 @@ export default function Landing() {
                   <defs>
                     <linearGradient id="curveGrad" x1="0" y1="1" x2="1" y2="0">
                       <stop offset="0" stopColor="#0c79d8" />
-                      <stop offset="1" stopColor="#edaa3f" />
+                      <stop offset="1" stopColor="#8be1ff" />
                     </linearGradient>
                     <linearGradient id="fillGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0" stopColor="#0c79d81f" />
@@ -276,12 +331,12 @@ export default function Landing() {
                     fill="none"
                   />
                   <g className="curve-pop">
-                    <line x1="448" y1="76" x2="532" y2="76" stroke="var(--gold)" strokeWidth="2" strokeDasharray="3 5" />
-                    <circle cx="448" cy="76" r="6.5" fill="var(--gold)" stroke="#fff" strokeWidth="2.5" />
-                    <text x="448" y="52" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="10.5" fontWeight="700" fill="var(--navy)">
+                    <line className="graduation-line" x1="448" y1="76" x2="532" y2="76" stroke="#75d5ff" strokeWidth="2" strokeDasharray="3 5" />
+                    <circle className="graduation-point" cx="448" cy="76" r="6.5" fill="#75d5ff" stroke="#fff" strokeWidth="2.5" />
+                    <text x="448" y="52" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="10.5" fontWeight="700" fill="#dff5ff">
                       GRADUATION
                     </text>
-                    <text x="448" y="64" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="9" fill="var(--muted)">
+                    <text x="448" y="64" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="9" fill="#91b5ca">
                       LP locked forever
                     </text>
                   </g>
@@ -312,7 +367,33 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="section shell" id="vaults">
+      <section className="graduated-section section" id="graduated">
+        <div className="shell">
+          <div className="pixel-terminal">
+            <div className="terminal-topline">
+              <div className="terminal-brand"><span className="pixel-mark">◆</span><span>ARCPAD / LIVE CURVES</span></div>
+              <span className="terminal-status"><i /> LIVE ON ARC</span>
+            </div>
+            <div className="graduated-head">
+              <div>
+                <span className="pixel-kicker">LIVE BONDING CURVES</span>
+                <h2>Launching now</h2>
+                <p>Live buys move market caps and push every token toward graduation.</p>
+              </div>
+              <div className="terminal-count"><strong>04</strong><span>ACTIVE</span></div>
+            </div>
+            <div className="graduated-grid">
+              <LiveLaunchCard symbol="SMO" name="Arc Smoke" baseCap={6.4} time="2m ago" target={68} accent="#82d8ff" image="/tokens/arc-smoke.webp" />
+              <LiveLaunchCard symbol="WAG" name="wagmi.exe" baseCap={12.8} time="18m ago" target={84} accent="#b9a5ff" image="/tokens/wagmi-exe.webp" />
+              <LiveLaunchCard symbol="ARC" name="Arc Signal" baseCap={4.7} time="1h ago" target={47} accent="#79e8bc" image="/tokens/arc-signal.webp" />
+              <LiveLaunchCard symbol="PXL" name="Pixel Protocol" baseCap={19.2} time="3h ago" target={92} accent="#ff9fca" image="/tokens/pixel-protocol.webp" />
+            </div>
+            <div className="terminal-footer"><span>01 — 01</span><span className="terminal-dots">● ○ ○</span><a href="/app">Explore all launches ↗</a></div>
+          </div>
+        </div>
+      </section>
+
+      <section className="section shell vault-section" id="vaults">
         <span className="section-kicker">Programmable fee vaults</span>
         <div className="section-head">
           <h2>1% of every trade, routed your way</h2>
@@ -341,7 +422,7 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="section shell" id="contracts" style={{ paddingTop: 0 }}>
+      <section className="section shell contract-section" id="contracts" style={{ paddingTop: 0 }}>
         <span className="section-kicker">Everything on-chain</span>
         <div className="section-head">
           <h2>Verify it yourself</h2>
@@ -367,7 +448,7 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="section shell" id="faq" style={{ paddingTop: 0 }}>
+      <section className="section shell faq-section" id="faq" style={{ paddingTop: 0 }}>
         <span className="section-kicker">FAQ</span>
         <div className="section-head">
           <h2>Questions, answered</h2>

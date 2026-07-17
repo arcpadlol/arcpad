@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 import {
   EXPLORER,
   LAUNCHPAD,
@@ -13,13 +15,20 @@ import {
 } from "../lib/arcpad";
 import { useArcPadData, useWallet } from "../lib/useArcPad";
 import { useMeta } from "../lib/useMeta";
-import { CreateModal, TradeModal } from "../components/modals";
+import { avatarStyle, CreateModal } from "../components/modals";
 import { CoinAvatar } from "../components/avatar";
 import { ActivityList } from "../components/activity";
 import { Footer, Notice, Topbar, TrendUpIcon } from "../components/chrome";
 
 type Tab = "new" | "progress" | "graduated";
-type View = "card" | "table";
+type View = "card" | "table" | "grid";
+
+const tokenImage = (symbol: string) => ({
+  SMO: "/tokens/arc-smoke.webp",
+  WAG: "/tokens/wagmi-exe.webp",
+  ARC: "/tokens/arc-signal.webp",
+  PXL: "/tokens/pixel-protocol.webp",
+}[symbol.toUpperCase()]);
 
 function PlusIcon() {
   return (
@@ -49,6 +58,10 @@ function RowsIcon() {
   );
 }
 
+function MosaicIcon() {
+  return <svg viewBox="0 0 16 16" fill="none" aria-hidden style={{ width:13,height:13 }}><rect x="2" y="2" width="12" height="7" rx="1.3" stroke="currentColor" strokeWidth="1.4"/><rect x="2" y="11" width="5.5" height="3" rx="1" stroke="currentColor" strokeWidth="1.4"/><rect x="9" y="11" width="5" height="3" rx="1" stroke="currentColor" strokeWidth="1.4"/></svg>;
+}
+
 function SearchIcon() {
   return (
     <svg viewBox="0 0 16 16" fill="none" aria-hidden>
@@ -67,14 +80,20 @@ function StatusChip({ coin }: { coin: CoinInfo }) {
 }
 
 export function BoardApp({ initialCreate = false }: { initialCreate?: boolean }) {
+  const router = useRouter();
   const wallet = useWallet();
   const { coins, activity, loading, error, reload } = useArcPadData();
-  const { metas, refreshMetas } = useMeta();
+  const { metas } = useMeta();
   const [tab, setTab] = useState<Tab>("new");
   const [view, setView] = useState<View>("card");
   const [query, setQuery] = useState("");
-  const [selected, setSelected] = useState<CoinInfo | null>(null);
   const [creating, setCreating] = useState(initialCreate);
+
+  useEffect(() => {
+    if (!error) return;
+    const retry = window.setTimeout(() => reload(), 4000);
+    return () => window.clearTimeout(retry);
+  }, [error, reload]);
 
   const list = useMemo(() => {
     let r = coins.filter((c) =>
@@ -108,7 +127,7 @@ export function BoardApp({ initialCreate = false }: { initialCreate?: boolean })
       <Notice />
       <Topbar wallet={wallet} />
 
-      <section className="section shell" id="board">
+      <section className="section shell token-board-section" id="board">
         <div className="section-head">
           <h2>Coin board</h2>
           <span className="count">
@@ -135,7 +154,7 @@ export function BoardApp({ initialCreate = false }: { initialCreate?: boolean })
               TRENDING
             </span>
             {trending.map((t, i) => (
-              <button className="trend-card" key={t.coin.token} onClick={() => setSelected(t.coin)}>
+              <button className="trend-card" key={t.coin.token} onClick={() => router.push(`/token/${t.coin.token}`)}>
                 <span className="trend-rank">#{i + 1}</span>
                 <CoinAvatar symbol={t.coin.symbol} image={metas[t.coin.token.toLowerCase()]?.image} />
                 <span className="trend-main">
@@ -170,18 +189,21 @@ export function BoardApp({ initialCreate = false }: { initialCreate?: boolean })
             <button className={view === "table" ? "active" : ""} onClick={() => setView("table")}>
               <RowsIcon /> Table
             </button>
+            <button className={view === "grid" ? "active" : ""} onClick={() => setView("grid")}>
+              <MosaicIcon /> Grid
+            </button>
           </div>
         </div>
 
+        {error && (
+          <div className="rpc-reconnect" role="status" aria-live="polite">
+            <i aria-hidden="true" />
+            Arc RPC reconnecting…
+          </div>
+        )}
+
         <div className="board-grid">
           <div>
-            {error && (
-              <div className="empty">
-                <h3>Could not reach Arc</h3>
-                <p>{error}</p>
-                <button className="btn btn-outline" onClick={reload}>Retry</button>
-              </div>
-            )}
             {!error && !loading && list.length === 0 && (
               <div className="empty">
                 <h3>No markets here yet</h3>
@@ -193,9 +215,9 @@ export function BoardApp({ initialCreate = false }: { initialCreate?: boolean })
             )}
 
             {view === "card" ? (
-              <div className="coin-grid">
+              <div className="coin-grid board-token-grid">
                 {list.map((c) => (
-                  <button className="coin-card" key={c.token} onClick={() => setSelected(c)}>
+                  <button className="coin-card board-coin-card" key={c.token} onClick={() => router.push(`/token/${c.token}`)}>
                     <div className="coin-top">
                       <CoinAvatar symbol={c.symbol} image={metas[c.token.toLowerCase()]?.image} />
                       <div className="coin-title">
@@ -242,8 +264,26 @@ export function BoardApp({ initialCreate = false }: { initialCreate?: boolean })
                   </button>
                 ))}
               </div>
+            ) : view === "grid" ? (
+              <div className="launch-grid">
+                {list.map((c) => {
+                  const image = tokenImage(c.symbol);
+                  return <button className="launch-grid-card" key={c.token} onClick={() => router.push(`/token/${c.token}`)}>
+                    <div className="launch-grid-art">
+                      {image ? <Image src={image} alt={c.name} fill sizes="(max-width: 700px) 92vw, 280px" /> : <span style={avatarStyle(c.symbol)}>{c.symbol.slice(0,3)}</span>}
+                      <StatusChip coin={c}/>
+                    </div>
+                    <div className="launch-grid-copy">
+                      <strong>{c.name}</strong><small>${c.symbol} · {(PRESETS[c.preset] ?? PRESETS[0]).name} vault</small>
+                      <div className="launch-grid-numbers"><span><small>MARKET CAP</small><b>{fmtUsd(marketCap(c.price)/10n**18n)}</b></span><span><small>RAISED</small><b>{fmtUsd(c.realUsdc)}</b></span></div>
+                      <div className="bond-label"><span>Bonding progress</span><b>{(Number(c.progressBps)/100).toFixed(1)}%</b></div>
+                      <div className="bond-track"><i className="bond-fill" style={{width:`${Math.min(100,Number(c.progressBps)/100)}%`,display:"block"}}/></div>
+                    </div>
+                  </button>;
+                })}
+              </div>
             ) : (
-              !error && list.length > 0 && (
+              list.length > 0 && (
                 <div className="table-wrap">
                   <table className="coin-table">
                     <thead>
@@ -260,7 +300,7 @@ export function BoardApp({ initialCreate = false }: { initialCreate?: boolean })
                     </thead>
                     <tbody>
                       {list.map((c) => (
-                        <tr key={c.token} onClick={() => setSelected(c)}>
+                        <tr key={c.token} onClick={() => router.push(`/token/${c.token}`)}>
                           <td>
                             <div className="t-token">
                               <CoinAvatar symbol={c.symbol} image={metas[c.token.toLowerCase()]?.image} />
@@ -316,16 +356,6 @@ export function BoardApp({ initialCreate = false }: { initialCreate?: boolean })
 
       <Footer launchpad={LAUNCHPAD} explorer={EXPLORER} />
 
-      {selected && (
-        <TradeModal
-          coin={selected}
-          meta={metas[selected.token.toLowerCase()]}
-          wallet={wallet}
-          onClose={() => setSelected(null)}
-          onChanged={reload}
-          onMetaChanged={refreshMetas}
-        />
-      )}
       {creating && (
         <CreateModal
           wallet={wallet}

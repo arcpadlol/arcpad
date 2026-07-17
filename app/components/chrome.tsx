@@ -113,7 +113,10 @@ const NAV = [
   { label: "Docs", href: "/docs" },
 ];
 
-function ConnectControl({ wallet }: { wallet: ReturnType<typeof useWallet> }) {
+function ConnectControl({ wallet, landing = false }: { wallet: ReturnType<typeof useWallet>; landing?: boolean }) {
+  if (landing) {
+    return <Link className="btn btn-primary open-app-btn" href="/app">Open App <ArrowRightIcon /></Link>;
+  }
   if (!wallet.connected) {
     return (
       <button className="btn btn-primary" onClick={wallet.connect}>
@@ -136,7 +139,7 @@ function ConnectControl({ wallet }: { wallet: ReturnType<typeof useWallet> }) {
   );
 }
 
-export function Topbar({ wallet }: { wallet: ReturnType<typeof useWallet> }) {
+export function Topbar({ wallet, landing = false }: { wallet: ReturnType<typeof useWallet>; landing?: boolean }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
@@ -167,8 +170,8 @@ export function Topbar({ wallet }: { wallet: ReturnType<typeof useWallet> }) {
         <div className="top-actions">
           <SocialLinks />
           <ChainPill />
-          <ConnectControl wallet={wallet} />
-          <button
+          <ConnectControl wallet={wallet} landing={landing} />
+          {!landing && <button
             className="menu-btn"
             aria-label="Menu"
             aria-expanded={open}
@@ -181,7 +184,7 @@ export function Topbar({ wallet }: { wallet: ReturnType<typeof useWallet> }) {
                 <path d="M2 4.5h12M2 8h12M2 11.5h12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
               )}
             </svg>
-          </button>
+          </button>}
         </div>
         <nav className={`mobile-nav ${open ? "open" : ""}`}>
           <Link href="/" onClick={() => setOpen(false)}>Home</Link>
