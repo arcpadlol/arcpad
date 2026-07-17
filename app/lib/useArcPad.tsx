@@ -12,9 +12,8 @@ import {
   type CoinInfo,
 } from "./arcpad";
 
-export const DEPLOY_BLOCK = 52_387_000n;
-/** Arc public RPC caps eth_getLogs at a 10,000 block range. */
-const LOG_WINDOW = 9_500n;
+/** Deploy block of the launchpad; the activity endpoint reads logs from here. */
+export const DEPLOY_BLOCK = 52_256_000n;
 
 declare global {
   interface Window {
@@ -123,8 +122,14 @@ export type ActivityItem = {
   tx: `0x${string}`;
 };
 
-const eventAbi = (name: string) =>
-  launchpadAbi.find((e) => e.type === "event" && e.name === name) as any;
+type RawAct = {
+  kind: ActivityItem["kind"];
+  token: string;
+  usdc: string;
+  who: string;
+  block: number;
+  tx: string;
+};
 
 export function useArcPadData() {
   const [coins, setCoins] = useState<CoinInfo[]>([]);
@@ -132,50 +137,25 @@ export function useArcPadData() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Activity comes from the cached, server-side /api/activity endpoint. Reading
+  // event logs straight from the browser hammered the Arc RPC's per-IP rate
+  // limit (-32011) because every visitor shared the proxy's IP; one cached
+  // server read serves everyone. Symbols are resolved from the coin list here.
   const loadActivity = useCallback(async (list: CoinInfo[]) => {
-    // Recent window only (RPC caps getLogs at 10k blocks).
-    const latest = await publicClient.getBlockNumber();
-    const fromBlock =
-      latest - LOG_WINDOW > DEPLOY_BLOCK ? latest - LOG_WINDOW : DEPLOY_BLOCK;
+    const res = await fetch("/api/activity");
+    const json = (await res.json()) as { activity?: RawAct[] };
     const symbolOf = Object.fromEntries(
       list.map((c) => [c.token.toLowerCase(), c.symbol])
     );
-    const [created, trades, grads] = await Promise.all([
-      publicClient.getLogs({ address: LAUNCHPAD, event: eventAbi("CoinCreated"), fromBlock, toBlock: latest }),
-      publicClient.getLogs({ address: LAUNCHPAD, event: eventAbi("Trade"), fromBlock, toBlock: latest }),
-      publicClient.getLogs({ address: LAUNCHPAD, event: eventAbi("Graduated"), fromBlock, toBlock: latest }),
-    ]);
-
-    const acts: ActivityItem[] = [
-      ...created.map((l: any) => ({
-        kind: "create" as const,
-        token: l.args.token as `0x${string}`,
-        symbol: (l.args.symbol as string) ?? "?",
-        who: l.args.creator as `0x${string}`,
-        block: l.blockNumber as bigint,
-        tx: l.transactionHash as `0x${string}`,
-      })),
-      ...trades.map((l: any) => ({
-        kind: l.args.isBuy ? ("buy" as const) : ("sell" as const),
-        token: l.args.token as `0x${string}`,
-        symbol: symbolOf[(l.args.token as string).toLowerCase()] ?? "?",
-        usdc: l.args.usdcAmount as bigint,
-        who: l.args.trader as `0x${string}`,
-        block: l.blockNumber as bigint,
-        tx: l.transactionHash as `0x${string}`,
-      })),
-      ...grads.map((l: any) => ({
-        kind: "graduate" as const,
-        token: l.args.token as `0x${string}`,
-        symbol: symbolOf[(l.args.token as string).toLowerCase()] ?? "?",
-        usdc: l.args.usdcToLp as bigint,
-        who: l.args.token as `0x${string}`,
-        block: l.blockNumber as bigint,
-        tx: l.transactionHash as `0x${string}`,
-      })),
-    ]
-      .sort((a, b) => (a.block > b.block ? -1 : 1))
-      .slice(0, 24);
+    const acts: ActivityItem[] = (json.activity ?? []).map((a) => ({
+      kind: a.kind,
+      token: a.token as `0x${string}`,
+      symbol: symbolOf[a.token.toLowerCase()] ?? "?",
+      usdc: a.usdc ? BigInt(a.usdc) : undefined,
+      who: a.who as `0x${string}`,
+      block: BigInt(a.block),
+      tx: a.tx as `0x${string}`,
+    }));
     setActivity(acts);
   }, []);
 
