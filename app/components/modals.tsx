@@ -318,8 +318,12 @@ export function TradeModal({
 
   return (
     <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <section className="modal">
+      <section className="modal modal-terminal">
         <button className="modal-x" aria-label="Close" onClick={onClose}><CloseIcon /></button>
+        <div className="terminal-topline">
+          <div className="terminal-brand"><span className="pixel-mark">◆</span><span>ARCPAD / TRADE</span></div>
+          <span className="terminal-status"><i /> {coin.graduated ? "GRADUATED" : "CURVE LIVE"}</span>
+        </div>
         <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 10 }}>
           <CoinAvatar symbol={coin.symbol} image={meta?.image} />
           <div>
@@ -591,9 +595,13 @@ export function CreateModal({
 
   return (
     <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <section className="modal">
+      <section className="modal modal-terminal">
         <button className="modal-x" aria-label="Close" onClick={onClose}><CloseIcon /></button>
-        <span className="overline">Create on ArcPad</span>
+        <div className="terminal-topline">
+          <div className="terminal-brand"><span className="pixel-mark">◆</span><span>ARCPAD / NEW LAUNCH</span></div>
+          <span className="terminal-status"><i /> LIVE ON ARC</span>
+        </div>
+        <span className="pixel-kicker">LIVE BONDING CURVES</span>
         <h2>Turn a meme into a market</h2>
         <p className="sub">
           1,000,000,000 supply. 80% sold on a USDC bonding curve, 20% paired as

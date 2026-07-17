@@ -30,14 +30,21 @@ export default function TokenDetailPage() {
   const image=tokenImage(coin.symbol), progress=Math.min(100,Number(coin.progressBps)/100);
   return <main className="app token-detail-page">
     <Notice/><Topbar wallet={wallet}/>
-    <section className="section shell token-detail">
+    <section className="section shell token-detail detail-terminal">
       <Link href="/app" className="detail-back">← Back to tokens</Link>
+      <div className="pixel-terminal">
+      <div className="terminal-topline">
+        <div className="terminal-brand"><span className="pixel-mark">◆</span><span>ARCPAD / TOKEN DETAIL</span></div>
+        <span className="terminal-status"><i/> LIVE ON ARC</span>
+      </div>
       <div className="detail-hero">
         <div className="detail-art">{image?<Image src={image} alt={coin.name} fill priority sizes="(max-width:700px) 92vw,360px"/>:<span style={avatarStyle(coin.symbol)}>{coin.symbol.slice(0,3)}</span>}</div>
         <div className="detail-copy">
-          <div className="detail-status"><i/> {coin.graduated?"GRADUATED":"CURVE LIVE"}</div>
+          <span className="graduated-badge">{coin.graduated?"GRADUATED":"BONDING LIVE"}</span>
           <h1>{coin.name}</h1><div className="detail-symbol">${coin.symbol}</div>
           <p>USDC-native token launched on Arc with programmable fee routing and permanently locked liquidity at graduation.</p>
+          <div className="graduated-progress" style={{"--bonding-progress":`${progress}%`} as React.CSSProperties}><div><i><b/><b/><b/><b/></i></div><span>{progress.toFixed(1)}%</span></div>
+          <div className="token-lock"><span>{coin.graduated?"LP LOCKED":"CURVE ACTIVE"}</span><span>{short(coin.token)}</span></div>
           <div className="detail-actions"><button className="btn btn-gold btn-lg" onClick={()=>setTrading(true)}>Trade ${coin.symbol}</button><a className="btn btn-outline btn-lg" href={`${EXPLORER}/address/${coin.token}`} target="_blank" rel="noreferrer">View contract ↗</a></div>
         </div>
       </div>
@@ -57,6 +64,8 @@ export default function TokenDetailPage() {
         </aside>
       </div>
       <div className="detail-activity"><div className="detail-panel-head"><div><span>RECENT ACTIVITY</span><b>Public transactions</b></div></div><ActivityList activity={acts} loading={loading}/></div>
+      <div className="terminal-footer"><span>01 — 01</span><span className="terminal-dots">● ○ ○</span><Link href="/app">Explore all launches ↗</Link></div>
+      </div>
     </section>
     <Footer launchpad={LAUNCHPAD} explorer={EXPLORER}/>
     {trading&&<TradeModal coin={coin} wallet={wallet} onClose={()=>setTrading(false)} onChanged={reload}/>} 

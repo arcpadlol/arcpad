@@ -23,6 +23,8 @@ import { Footer, Notice, Topbar, TrendUpIcon } from "../components/chrome";
 type Tab = "new" | "progress" | "graduated";
 type View = "card" | "table" | "grid";
 
+const ACCENTS = ["#82d8ff", "#b9a5ff", "#79e8bc", "#ff9fca"];
+
 const tokenImage = (symbol: string) => ({
   SMO: "/tokens/arc-smoke.webp",
   WAG: "/tokens/wagmi-exe.webp",
@@ -127,13 +129,21 @@ export function BoardApp({ initialCreate = false }: { initialCreate?: boolean })
       <Notice />
       <Topbar wallet={wallet} />
 
-      <section className="section shell token-board-section" id="board">
-        <div className="section-head">
-          <h2>Coin board</h2>
-          <span className="count">
-            {loading ? "reading Arc…" : `${list.length} markets · data from chain`}
-          </span>
-          <span className="spacer" />
+      <section className="section shell token-board-section board-terminal-section" id="board">
+        <div className="pixel-terminal board-terminal">
+        <div className="terminal-topline">
+          <div className="terminal-brand"><span className="pixel-mark">◆</span><span>ARCPAD / COIN BOARD</span></div>
+          <span className="terminal-status"><i /> LIVE ON ARC</span>
+        </div>
+        <div className="graduated-head">
+          <div>
+            <span className="pixel-kicker">LIVE BONDING CURVES</span>
+            <h2>Coin board</h2>
+            <p>{loading ? "Reading markets from Arc…" : "Live buys move market caps and push every token toward graduation."}</p>
+          </div>
+          <div className="terminal-count"><strong>{String(list.length).padStart(2, "0")}</strong><span>MARKETS</span></div>
+        </div>
+        <div className="board-controls">
           <label className="search">
             <SearchIcon />
             <input
@@ -215,71 +225,84 @@ export function BoardApp({ initialCreate = false }: { initialCreate?: boolean })
             )}
 
             {view === "card" ? (
-              <div className="coin-grid board-token-grid">
-                {list.map((c) => (
-                  <button className="coin-card board-coin-card" key={c.token} onClick={() => router.push(`/token/${c.token}`)}>
-                    <div className="coin-top">
-                      <CoinAvatar symbol={c.symbol} image={metas[c.token.toLowerCase()]?.image} />
-                      <div className="coin-title">
+              <div className="graduated-grid board-cards">
+                {list.map((c, i) => {
+                  const pct = Math.min(100, Number(c.progressBps) / 100);
+                  const image = metas[c.token.toLowerCase()]?.image ?? tokenImage(c.symbol);
+                  return (
+                    <button
+                      className="graduated-token board-card"
+                      key={c.token}
+                      onClick={() => router.push(`/token/${c.token}`)}
+                      style={{ "--token-accent": ACCENTS[i % ACCENTS.length], "--bonding-progress": `${pct}%` } as React.CSSProperties}
+                    >
+                      <div className="token-art">
+                        {image ? (
+                          <Image src={image} alt={`${c.name} token artwork`} fill sizes="(max-width: 700px) 92vw, 300px" />
+                        ) : (
+                          <span style={avatarStyle(c.symbol)}>{c.symbol.slice(0, 3)}</span>
+                        )}
+                        <i />
+                      </div>
+                      <div className="token-info">
+                        <span className="graduated-badge">{c.graduated ? "GRADUATED" : "BONDING LIVE"}</span>
                         <strong>{c.name}</strong>
-                        <span>${c.symbol}</span>
+                        <small>${c.symbol} · {(PRESETS[c.preset] ?? PRESETS[0]).name} vault</small>
                       </div>
-                      <div className="coin-flags">
-                        <span className="chip chip-vault">
-                          {(PRESETS[c.preset] ?? PRESETS[0]).name} vault
-                        </span>
-                        <StatusChip coin={c} />
+                      <div className="token-metrics">
+                        <span><b>{fmtUsd(marketCap(c.price) / 10n ** 18n)}</b> MC</span>
+                        <span><b>{fmtUsd(c.realUsdc)}</b> RAISED</span>
+                        <span><b>{fmtPrice(c.price)}</b></span>
                       </div>
-                    </div>
-                    <div className="coin-data">
-                      <div>
-                        <span>Price</span>
-                        <b>{fmtPrice(c.price)}</b>
+                      <div className="graduated-progress"><div><i><b /><b /><b /><b /></i></div><span>{pct.toFixed(1)}%</span></div>
+                      <div className="token-lock">
+                        <span>{c.graduated ? "LP LOCKED" : "CURVE ACTIVE"}</span>
+                        <span>{short(c.token)}</span>
                       </div>
-                      <div>
-                        <span>Market cap</span>
-                        <b>{fmtUsd(marketCap(c.price) / 10n ** 18n)}</b>
+                      <div className="token-lock">
+                        <span>BY {short(c.creator)}</span>
+                        <span>TARGET {fmtUsd(c.raiseTarget, 0)}</span>
                       </div>
-                      <div>
-                        <span>Raised</span>
-                        <b>{fmtUsd(c.realUsdc)}</b>
-                      </div>
-                    </div>
-                    <div className="bond">
-                      <div className="bond-label">
-                        <span>Bonding curve</span>
-                        <b>{(Number(c.progressBps) / 100).toFixed(1)}%</b>
-                      </div>
-                      <div className="bond-track">
-                        <i
-                          className="bond-fill"
-                          style={{ width: `${Math.min(100, Number(c.progressBps) / 100)}%`, display: "block" }}
-                        />
-                      </div>
-                    </div>
-                    <div className="coin-foot">
-                      <span>by <span className="mono">{short(c.creator)}</span></span>
-                      <span>target {fmtUsd(c.raiseTarget, 0)}</span>
-                    </div>
-                  </button>
-                ))}
+                    </button>
+                  );
+                })}
               </div>
             ) : view === "grid" ? (
-              <div className="launch-grid">
-                {list.map((c) => {
-                  const image = tokenImage(c.symbol);
-                  return <button className="launch-grid-card" key={c.token} onClick={() => router.push(`/token/${c.token}`)}>
-                    <div className="launch-grid-art">
-                      {image ? <Image src={image} alt={c.name} fill sizes="(max-width: 700px) 92vw, 280px" /> : <span style={avatarStyle(c.symbol)}>{c.symbol.slice(0,3)}</span>}
-                      <StatusChip coin={c}/>
-                    </div>
-                    <div className="launch-grid-copy">
-                      <strong>{c.name}</strong><small>${c.symbol} · {(PRESETS[c.preset] ?? PRESETS[0]).name} vault</small>
-                      <div className="launch-grid-numbers"><span><small>MARKET CAP</small><b>{fmtUsd(marketCap(c.price)/10n**18n)}</b></span><span><small>RAISED</small><b>{fmtUsd(c.realUsdc)}</b></span></div>
-                      <div className="bond-label"><span>Bonding progress</span><b>{(Number(c.progressBps)/100).toFixed(1)}%</b></div>
-                      <div className="bond-track"><i className="bond-fill" style={{width:`${Math.min(100,Number(c.progressBps)/100)}%`,display:"block"}}/></div>
-                    </div>
-                  </button>;
+              <div className="graduated-grid board-mosaic">
+                {list.map((c, i) => {
+                  const pct = Math.min(100, Number(c.progressBps) / 100);
+                  const image = metas[c.token.toLowerCase()]?.image ?? tokenImage(c.symbol);
+                  return (
+                    <button
+                      className="graduated-token"
+                      key={c.token}
+                      onClick={() => router.push(`/token/${c.token}`)}
+                      style={{ "--token-accent": ACCENTS[i % ACCENTS.length], "--bonding-progress": `${pct}%` } as React.CSSProperties}
+                    >
+                      <div className="token-art">
+                        {image ? (
+                          <Image src={image} alt={`${c.name} token artwork`} fill sizes="(max-width: 700px) 45vw, 280px" />
+                        ) : (
+                          <span style={avatarStyle(c.symbol)}>{c.symbol.slice(0, 3)}</span>
+                        )}
+                        <i />
+                      </div>
+                      <div className="token-info">
+                        <span className="graduated-badge">{c.graduated ? "GRADUATED" : "BONDING LIVE"}</span>
+                        <strong>{c.name}</strong>
+                        <small>${c.symbol}</small>
+                      </div>
+                      <div className="token-metrics">
+                        <span><b>{fmtUsd(marketCap(c.price) / 10n ** 18n)}</b> MC</span>
+                        <span><b>{fmtUsd(c.realUsdc)}</b> RAISED</span>
+                      </div>
+                      <div className="graduated-progress"><div><i><b /><b /><b /><b /></i></div><span>{pct.toFixed(1)}%</span></div>
+                      <div className="token-lock">
+                        <span>{c.graduated ? "LP LOCKED" : "CURVE ACTIVE"}</span>
+                        <span>{short(c.token)}</span>
+                      </div>
+                    </button>
+                  );
                 })}
               </div>
             ) : (
@@ -351,6 +374,13 @@ export function BoardApp({ initialCreate = false }: { initialCreate?: boolean })
             </div>
             <ActivityList activity={activity} loading={loading} />
           </aside>
+        </div>
+
+        <div className="terminal-footer">
+          <span>01 — 01</span>
+          <span className="terminal-dots">● ○ ○</span>
+          <a href="/create">Launch a token ↗</a>
+        </div>
         </div>
       </section>
 
