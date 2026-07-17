@@ -45,3 +45,4 @@ next-env.d.ts
 contracts/artifacts/
 contracts/cache/
 contracts/node_modules/
+tsconfig.tsbuildinfo
