@@ -1,6 +1,6 @@
 # ArcPad
 
-The USDC-native meme launchpad on Arc.
+Launch culture. Program value. The meme launchpad built natively on Arc.
 
 Live at [www.arcpad.lol](https://www.arcpad.lol)
 

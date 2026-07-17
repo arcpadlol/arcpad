@@ -222,11 +222,20 @@ export const fmtToken = (v18: bigint, digits = 2) => {
   }).format(n);
 };
 
+const SUBSCRIPTS = "₀₁₂₃₄₅₆₇₈₉";
+
 export const fmtPrice = (v6: bigint) => {
   const n = Number(v6) / 1e6;
   if (n === 0) return "$0";
-  if (n < 0.0001) return `$${n.toExponential(2)}`;
-  return `$${n.toLocaleString("en", { maximumFractionDigits: 6 })}`;
+  if (n >= 1) return `$${n.toLocaleString("en", { maximumFractionDigits: 2 })}`;
+  if (n >= 0.0001) return `$${n.toLocaleString("en", { maximumFractionDigits: 6 })}`;
+  // Sub-0.0001 prices use subscript-zero notation, e.g. $0.0₄1398,
+  // instead of unreadable scientific form like $1.40e-5.
+  const [mant, exp] = n.toExponential(3).split("e");
+  const zeros = -parseInt(exp) - 1;
+  const digits = mant.replace(".", "").replace(/0+$/, "");
+  const sub = String(zeros).split("").map((d) => SUBSCRIPTS[Number(d)]).join("");
+  return `$0.0${sub}${digits}`;
 };
 
 export const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
