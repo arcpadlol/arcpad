@@ -15,14 +15,14 @@ export const arcTestnet = defineChain({
   },
 });
 
-export const LAUNCHPAD = "0x8eA715A26fCa0c474c81D65142439b306c1Be131" as const;
+export const LAUNCHPAD = "0xdf155bA386ab42cBBD0EE043cf9f6bA17E7A3ac3" as const;
 export const USDC = "0x3600000000000000000000000000000000000000" as const;
 export const EXPLORER = "https://testnet.arcscan.app";
 export const FAUCET = "https://faucet.circle.com";
 
 /** Official links. Leave X_URL empty to hide the icon until the handle exists. */
-export const X_URL = "";
-export const GITHUB_URL = "https://github.com/arcpadlol";
+export const X_URL = "https://x.com/Arcpad_";
+export const GITHUB_URL = "https://github.com/arcpadlol/arcpad";
 
 export const PRESETS = [
   { key: 0, name: "Grow", split: "37.5% creator · 37.5% bounties · 25% treasury" },

@@ -12,7 +12,7 @@ import {
   type CoinInfo,
 } from "./arcpad";
 
-export const DEPLOY_BLOCK = 52_153_262n;
+export const DEPLOY_BLOCK = 52_387_000n;
 /** Arc public RPC caps eth_getLogs at a 10,000 block range. */
 const LOG_WINDOW = 9_500n;
 

@@ -194,6 +194,24 @@ describe("ArcPadLaunchpad", () => {
     expect(await erc.balanceOf(pad)).to.equal(0n);
   });
 
+  it("pre-creates and locks the graduation pool at creation", async () => {
+    // C-1 fix: the pool is created and initialized at the deterministic final
+    // price inside createCoin, so nobody can seed it at a bogus price and loot
+    // the locked liquidity at graduation.
+    const token = await createCoin();
+    const c = await pad.coins(token);
+    expect(c.pool).to.not.equal(ethers.ZeroAddress);
+
+    const pool = await ethers.getContractAt("MockV3Pool", c.pool);
+    const [sqrtPrice] = await pool.slot0();
+    expect(sqrtPrice).to.be.gt(0n);
+
+    // an outsider cannot re-initialize it to a different price
+    await expect(pool.connect(alice).initialize(123n)).to.be.revertedWith(
+      "already init"
+    );
+  });
+
   it("Burn preset accrues buyback budget and burns supply pre-graduation", async () => {
     const token = await createCoin(2); // Burn
     const erc = await ethers.getContractAt("ArcPadToken", token);
@@ -206,7 +224,7 @@ describe("ArcPadLaunchpad", () => {
     expect(c.buybackBudget).to.equal(expectedBudget);
 
     const supplyBefore = await erc.totalSupply();
-    await expect(pad.connect(bob).executeBuyback(token, expectedBudget)).to.emit(
+    await expect(pad.connect(bob).executeBuyback(token, expectedBudget, 0)).to.emit(
       pad,
       "Buyback"
     );
@@ -215,7 +233,7 @@ describe("ArcPadLaunchpad", () => {
     expect(c.buybackBudget).to.equal(0n);
 
     await expect(
-      pad.connect(bob).executeBuyback(token, 1n)
+      pad.connect(bob).executeBuyback(token, 1n, 0)
     ).to.be.revertedWithCustomError(pad, "BudgetExceeded");
   });
 
@@ -231,7 +249,7 @@ describe("ArcPadLaunchpad", () => {
     await erc.connect(bob).transfer(c.pool, T(3_000_000));
 
     const supplyBefore = await erc.totalSupply();
-    await pad.connect(alice).executeBuyback(token, c.buybackBudget);
+    await pad.connect(alice).executeBuyback(token, c.buybackBudget, 0);
     expect(await erc.totalSupply()).to.be.lt(supplyBefore);
   });
 
@@ -324,5 +342,23 @@ describe("ArcPadLaunchpad", () => {
       pad.connect(owner).setFees(400, 200)
     ).to.be.revertedWithCustomError(pad, "FeeTooHigh");
     await expect(pad.connect(alice).setFees(10, 10)).to.be.reverted;
+  });
+
+  it("caps the graduation fee at continuity break-even and floors raise tiers", async () => {
+    // L-2: graduation fee cannot be raised past 3%, so the pool always opens
+    // at the exact final curve price.
+    await pad.connect(owner).setGraduationFeeBps(300);
+    expect(await pad.graduationFeeBps()).to.equal(300);
+    await expect(
+      pad.connect(owner).setGraduationFeeBps(400)
+    ).to.be.revertedWithCustomError(pad, "FeeTooHigh");
+
+    // L-1: raise targets below the minimum (which would zero the virtual
+    // reserve) are rejected.
+    await expect(
+      pad.connect(owner).setRaiseTarget(1n, true)
+    ).to.be.revertedWithCustomError(pad, "InvalidRaiseTarget");
+    await pad.connect(owner).setRaiseTarget(U(1), true); // exactly the floor
+    expect(await pad.allowedRaiseTargets(U(1))).to.equal(true);
   });
 });

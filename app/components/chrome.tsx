@@ -110,6 +110,7 @@ const NAV = [
   { label: "Create", href: "/create" },
   { label: "Activity", href: "/activity" },
   { label: "Portfolio", href: "/portfolio" },
+  { label: "Docs", href: "/docs" },
 ];
 
 function ConnectControl({ wallet }: { wallet: ReturnType<typeof useWallet> }) {
@@ -162,10 +163,7 @@ export function Topbar({ wallet }: { wallet: ReturnType<typeof useWallet> }) {
           <span className="logo-name">arc<b>pad</b></span>
           <span className="badge-testnet">TESTNET</span>
         </Link>
-        <nav className="topnav">
-          {links()}
-          <a href="https://docs.arc.network" target="_blank" rel="noreferrer">Docs</a>
-        </nav>
+        <nav className="topnav">{links()}</nav>
         <div className="top-actions">
           <SocialLinks />
           <ChainPill />
@@ -188,7 +186,6 @@ export function Topbar({ wallet }: { wallet: ReturnType<typeof useWallet> }) {
         <nav className={`mobile-nav ${open ? "open" : ""}`}>
           <Link href="/" onClick={() => setOpen(false)}>Home</Link>
           {links()}
-          <a href="https://docs.arc.network" target="_blank" rel="noreferrer">Docs</a>
           <div className="mobile-foot">
             <ChainPill />
             <span className="mobile-social">
@@ -214,6 +211,7 @@ export function Footer({ launchpad, explorer }: { launchpad: string; explorer: s
           <Link href="/create">Create</Link>
           <Link href="/activity">Activity</Link>
           <Link href="/portfolio">Portfolio</Link>
+          <Link href="/docs">Docs</Link>
           <a href={`${explorer}/address/${launchpad}`} target="_blank" rel="noreferrer">Contract</a>
           <a href={FAUCET} target="_blank" rel="noreferrer">Faucet</a>
           <a href="https://docs.arc.network" target="_blank" rel="noreferrer">Arc docs</a>

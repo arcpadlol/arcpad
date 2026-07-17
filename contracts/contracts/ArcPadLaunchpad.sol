@@ -77,6 +77,17 @@ contract ArcPadLaunchpad is Ownable2Step, Pausable, ReentrancyGuard {
 
     uint256 public constant BPS = 10_000;
     uint256 public constant MAX_TOTAL_FEE_BPS = 500; // hard cap 5%
+    /// @dev Graduation fee is capped below the price-continuity break-even
+    ///      (~3.57%) so the pool is always seeded at the exact final curve
+    ///      price and never opens at a discount.
+    uint256 public constant MAX_GRADUATION_FEE_BPS = 300; // 3%
+    /// @dev Smallest raise target allowed, well above the point where the
+    ///      virtual reserve would truncate to zero.
+    uint256 public constant MIN_RAISE_TARGET = 1e6; // 1 USDC
+    /// @dev Graduation mint must consume at least this share of each intended
+    ///      side, so a pool whose price was skewed cannot force a lopsided,
+    ///      lootable deposit; a mispriced mint reverts instead.
+    uint256 private constant MINT_MIN_BPS = 9000; // 90%
 
     uint24 public constant POOL_FEE = 10_000; // 1% V3 fee tier (tick spacing 200)
     int24 private constant MIN_TICK = -887_200;
@@ -188,6 +199,32 @@ contract ArcPadLaunchpad is Ownable2Step, Pausable, ReentrancyGuard {
         return uint256(c.virtualUsdc0) * VIRTUAL_TOKEN_0;
     }
 
+    /// @dev The graduation pool's token ordering and sqrt price are fully
+    ///      determined by the raise target: at sell-out the virtual reserves
+    ///      are fixed, so the final price is known already at creation. Used
+    ///      to pre-create and initialize the pool in `createCoin`, and again
+    ///      as a defensive fallback in `_graduate`.
+    function _gradPlan(
+        address token,
+        uint256 virtualUsdc0_
+    ) private view returns (address t0, address t1, uint160 sqrtPriceX96) {
+        uint256 tokensToLp = TOTAL_SUPPLY - CURVE_SUPPLY;
+        uint256 vTend = VIRTUAL_TOKEN_0 - CURVE_SUPPLY;
+        // Matches the curve's exact final virtualUsdc (ceilDiv of k / vTend).
+        uint256 vUend = Math.ceilDiv(virtualUsdc0_ * VIRTUAL_TOKEN_0, vTend);
+        uint256 usdcToLp = Math.mulDiv(tokensToLp, vUend, vTend);
+
+        (t0, t1) = address(usdc) < token
+            ? (address(usdc), token)
+            : (token, address(usdc));
+        (uint256 a0, uint256 a1) = t0 == address(usdc)
+            ? (usdcToLp, tokensToLp)
+            : (tokensToLp, usdcToLp);
+        // sqrt(a1/a0) in Q64.96, computed at 2^96 scale then shifted so
+        // extreme USDC-vs-1e18-token ratios cannot overflow the mulDiv.
+        sqrtPriceX96 = uint160(Math.sqrt(Math.mulDiv(a1, 1 << 96, a0)) << 48);
+    }
+
     // ------------------------------------------------------------- creation
 
     /// @notice Deploy a new coin and open its bonding curve.
@@ -226,6 +263,18 @@ contract ArcPadLaunchpad is Ownable2Step, Pausable, ReentrancyGuard {
         c.virtualUsdc0 = virtualUsdc0;
         c.virtualUsdc = virtualUsdc0;
         c.virtualToken = VIRTUAL_TOKEN_0;
+
+        // Create and initialize the graduation pool now, at the deterministic
+        // final curve price. The token was just deployed, so its address is
+        // unknowable until this call and no one can have pre-created the pool.
+        // Owning the pool's initialization is what stops an attacker from
+        // seeding it at a bogus price and looting the locked liquidity.
+        (address gt0, address gt1, uint160 gSqrt) = _gradPlan(token, virtualUsdc0);
+        address gpool = v3Factory.getPool(gt0, gt1, POOL_FEE);
+        if (gpool == address(0)) gpool = v3Factory.createPool(gt0, gt1, POOL_FEE);
+        (uint160 gCur, , , , , , ) = IUniswapV3Pool(gpool).slot0();
+        if (gCur == 0) IUniswapV3Pool(gpool).initialize(gSqrt);
+        c.pool = gpool;
 
         allCoins.push(token);
         emit CoinCreated(token, msg.sender, preset, raiseTarget, name, symbol);
@@ -320,9 +369,13 @@ contract ArcPadLaunchpad is Ownable2Step, Pausable, ReentrancyGuard {
 
     /// @notice Spend part of a coin's buyback budget and burn the proceeds.
     ///         Callable by anyone: the budget can only ever buy and burn.
+    /// @param minTokensBurned Slippage floor: revert if the buyback would burn
+    ///        fewer tokens than this. Protects the budget from sandwich MEV,
+    ///        which matters most for the post-graduation pool swap.
     function executeBuyback(
         address token,
-        uint256 usdcAmount
+        uint256 usdcAmount,
+        uint256 minTokensBurned
     ) external nonReentrant returns (uint256 tokensBurned) {
         Coin storage c = coins[token];
         if (c.creator == address(0)) revert UnknownCoin();
@@ -369,6 +422,8 @@ contract ArcPadLaunchpad is Ownable2Step, Pausable, ReentrancyGuard {
             ArcPadToken(token).burn(tokensBurned);
             emit Buyback(token, usdcAmount, tokensBurned);
         }
+
+        if (tokensBurned < minTokensBurned) revert SlippageExceeded();
     }
 
     /// @dev V3 swap callback: pay the USDC we owe. Only the coin's own pool
@@ -526,17 +581,14 @@ contract ArcPadLaunchpad is Ownable2Step, Pausable, ReentrancyGuard {
             ? (usdcToLp, tokensToLp)
             : (tokensToLp, usdcToLp);
 
-        address pool = v3Factory.getPool(t0, t1, POOL_FEE);
-        if (pool == address(0)) pool = v3Factory.createPool(t0, t1, POOL_FEE);
+        // The pool was created and initialized at the true final price in
+        // createCoin, so it cannot have been seeded at a bogus price. The
+        // fallback initialize is defensive only (unreachable for our coins).
+        address pool = c.pool;
         (uint160 sqrtPriceX96, , , , , , ) = IUniswapV3Pool(pool).slot0();
         if (sqrtPriceX96 == 0) {
-            // sqrt(a1/a0) in Q64.96. Computed at 2^96 scale then shifted so
-            // extreme ratios (tiny USDC vs 1e18-scale tokens) cannot overflow
-            // the 256-bit mulDiv result; precision loss is negligible.
-            sqrtPriceX96 = uint160(
-                Math.sqrt(Math.mulDiv(a1, 1 << 96, a0)) << 48
-            );
-            IUniswapV3Pool(pool).initialize(sqrtPriceX96);
+            (, , uint160 gSqrt) = _gradPlan(token, c.virtualUsdc0);
+            IUniswapV3Pool(pool).initialize(gSqrt);
         }
 
         usdc.forceApprove(address(positionManager), usdcToLp);
@@ -551,8 +603,10 @@ contract ArcPadLaunchpad is Ownable2Step, Pausable, ReentrancyGuard {
                     tickUpper: MAX_TICK,
                     amount0Desired: a0,
                     amount1Desired: a1,
-                    amount0Min: 0,
-                    amount1Min: 0,
+                    // Require the mint to consume most of each intended side;
+                    // a skewed pool price would deposit lopsidedly and revert.
+                    amount0Min: (a0 * MINT_MIN_BPS) / BPS,
+                    amount1Min: (a1 * MINT_MIN_BPS) / BPS,
                     recipient: address(this),
                     deadline: block.timestamp
                 })
@@ -650,13 +704,14 @@ contract ArcPadLaunchpad is Ownable2Step, Pausable, ReentrancyGuard {
     }
 
     function setGraduationFeeBps(uint256 graduationFeeBps_) external onlyOwner {
-        if (graduationFeeBps_ > MAX_TOTAL_FEE_BPS) revert FeeTooHigh();
+        if (graduationFeeBps_ > MAX_GRADUATION_FEE_BPS) revert FeeTooHigh();
         graduationFeeBps = graduationFeeBps_;
     }
 
     /// @notice Allow or disallow a graduation raise target for new coins.
     function setRaiseTarget(uint256 raiseTarget, bool allowed) external onlyOwner {
-        if (raiseTarget == 0 || raiseTarget > 1_000_000e6) revert InvalidRaiseTarget();
+        if (raiseTarget < MIN_RAISE_TARGET || raiseTarget > 1_000_000e6)
+            revert InvalidRaiseTarget();
         allowedRaiseTargets[raiseTarget] = allowed;
         emit RaiseTargetSet(raiseTarget, allowed);
     }

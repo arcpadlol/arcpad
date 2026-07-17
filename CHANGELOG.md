@@ -2,6 +2,23 @@
 
 Newest entries first. Record only work that actually landed.
 
+## 2026-07-17 — Contract security fixes and Arc testnet redeploy
+
+### Fixed
+
+- C-1 (critical): the graduation pool is now created and initialized inside `createCoin` at the deterministic final curve price, so it cannot be pre-seeded at a bogus price; graduation also mints with 90%-per-side minimum-amount protection.
+- M-1 (medium): `executeBuyback` takes a `minTokensBurned` slippage floor.
+- L-1 (low): `setRaiseTarget` enforces `MIN_RAISE_TARGET` (1 USDC).
+- L-2 (low): `setGraduationFeeBps` capped at `MAX_GRADUATION_FEE_BPS` (3%) so the pool always opens at the exact final price.
+
+### Changed
+
+- Redeployed and re-verified the launchpad on Arc testnet at `0xdf155bA386ab42cBBD0EE043cf9f6bA17E7A3ac3`; frontend `LAUNCHPAD` and `DEPLOY_BLOCK` updated.
+
+### Validation
+
+- `npx hardhat test`: 14 passing (added coverage for the pre-created graduation pool and the new fee/raise-target bounds).
+
 ## 2026-07-17 — Premium redesign, full app navigation, resilient RPC reads
 
 ### Added

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { parseUnits } from "viem";
+import { decodeEventLog, parseUnits } from "viem";
 import {
   publicClient,
   launchpadAbi,
@@ -18,17 +18,19 @@ import {
   type CoinInfo,
 } from "../lib/arcpad";
 import { useTx, useWallet, type TxState } from "../lib/useArcPad";
+import { submitCoinMetadata, type CoinMetaFields } from "../lib/irys";
+import type { CoinMeta } from "../lib/useMeta";
+import { CoinAvatar, avatarStyle } from "./avatar";
+import { ExternalLinkIcon } from "./chrome";
 
-const AVATAR_BG = [
-  "linear-gradient(135deg,#0d1b30,#0c79d8)",
-  "linear-gradient(135deg,#0a5fa8,#2e9eff)",
-  "linear-gradient(135deg,#b97b17,#edaa3f)",
-  "linear-gradient(135deg,#0f3a63,#68c4ff)",
-];
+export { avatarStyle, CoinAvatar };
 
-export function avatarStyle(symbol: string) {
-  const i = (symbol.charCodeAt(0) + (symbol.charCodeAt(1) || 0)) % AVATAR_BG.length;
-  return { background: AVATAR_BG[i] };
+function CloseIcon() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" aria-hidden style={{ width: 13, height: 13 }}>
+      <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
 }
 
 function TxNote({ tx }: { tx: TxState }) {
@@ -52,18 +54,120 @@ function TxNote({ tx }: { tx: TxState }) {
   return <div className="tx-note tx-pending">{label}</div>;
 }
 
+// ------------------------------------------------------------- metadata
+
+const metaErrorText = (e: unknown) => {
+  const raw = (e as Error)?.message ?? "";
+  if (/rejected|denied/i.test(raw)) return "Signature rejected in wallet.";
+  return "Could not store metadata right now. You can retry, or skip and add it later from the coin's trade window.";
+};
+
+function MetaFields({
+  description, setDescription,
+  website, setWebsite,
+  x, setX,
+  telegram, setTelegram,
+  file, setFile,
+}: {
+  description: string; setDescription: (v: string) => void;
+  website: string; setWebsite: (v: string) => void;
+  x: string; setX: (v: string) => void;
+  telegram: string; setTelegram: (v: string) => void;
+  file: File | null; setFile: (f: File | null) => void;
+}) {
+  const [preview, setPreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!file) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- object URL lifecycle
+      setPreview(null);
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  return (
+    <>
+      <div className="field">
+        <span>Logo (optional, stored forever on Irys)</span>
+        <label className="img-pick">
+          {preview ? (
+            // eslint-disable-next-line @next/next/no-img-element -- local object URL preview
+            <img src={preview} alt="logo preview" />
+          ) : (
+            <span className="img-pick-empty" aria-hidden>
+              <svg viewBox="0 0 16 16" fill="none" style={{ width: 15, height: 15 }}>
+                <rect x="2" y="2" width="12" height="12" rx="3" stroke="currentColor" strokeWidth="1.4" />
+                <circle cx="6" cy="6.2" r="1.3" fill="currentColor" />
+                <path d="M3 12.5l3.2-3.4 2.4 2.3 2.2-2.6 2.2 2.7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
+          )}
+          <span className="img-pick-text">
+            <b>{file ? file.name : "Choose an image"}</b>
+            <small>PNG, JPG or WebP · compressed automatically, free under 100 KB</small>
+          </span>
+          <input
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          />
+        </label>
+      </div>
+      <label className="field">
+        <span>Description (optional)</span>
+        <textarea
+          rows={2}
+          maxLength={300}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="What is this coin about?"
+        />
+      </label>
+      <div className="form-row">
+        <label className="field">
+          <span>Website (optional)</span>
+          <input value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://" inputMode="url" />
+        </label>
+        <label className="field">
+          <span>X link (optional)</span>
+          <input value={x} onChange={(e) => setX(e.target.value)} placeholder="https://x.com/" inputMode="url" />
+        </label>
+      </div>
+      <label className="field">
+        <span>Telegram (optional)</span>
+        <input value={telegram} onChange={(e) => setTelegram(e.target.value)} placeholder="https://t.me/" inputMode="url" />
+      </label>
+    </>
+  );
+}
+
+const cleanFields = (f: { description: string; website: string; x: string; telegram: string }): CoinMetaFields => ({
+  description: f.description.trim() || undefined,
+  website: f.website.trim() || undefined,
+  x: f.x.trim() || undefined,
+  telegram: f.telegram.trim() || undefined,
+});
+
 // ---------------------------------------------------------------- trade
 
 export function TradeModal({
   coin,
+  meta,
   wallet,
   onClose,
   onChanged,
+  onMetaChanged,
 }: {
   coin: CoinInfo;
+  meta?: CoinMeta;
   wallet: ReturnType<typeof useWallet>;
   onClose: () => void;
   onChanged: () => void;
+  onMetaChanged?: () => void;
 }) {
   const { tx, run, reset } = useTx(wallet);
   const [side, setSide] = useState<"buy" | "sell">("buy");
@@ -71,6 +175,17 @@ export function TradeModal({
   const [quote, setQuote] = useState<bigint | null>(null);
   const [usdcBal, setUsdcBal] = useState<bigint | null>(null);
   const [tokenBal, setTokenBal] = useState<bigint | null>(null);
+
+  const isCreator =
+    !!wallet.account && wallet.account.toLowerCase() === coin.creator.toLowerCase();
+  const [editing, setEditing] = useState(false);
+  const [description, setDescription] = useState(meta?.description ?? "");
+  const [website, setWebsite] = useState(meta?.website ?? "");
+  const [x, setX] = useState(meta?.x ?? "");
+  const [telegram, setTelegram] = useState(meta?.telegram ?? "");
+  const [file, setFile] = useState<File | null>(null);
+  const [metaState, setMetaState] = useState<"idle" | "saving" | "done" | "error">("idle");
+  const [metaError, setMetaError] = useState("");
 
   const preset = PRESETS[coin.preset] ?? PRESETS[0];
 
@@ -174,25 +289,93 @@ export function TradeModal({
     }
   };
 
+  const saveMeta = async () => {
+    try {
+      setMetaState("saving");
+      setMetaError("");
+      await submitCoinMetadata({
+        token: coin.token,
+        fields: cleanFields({ description, website, x, telegram }),
+        imageFile: file,
+        walletClient: wallet.walletClient()!,
+        publicClient: publicClient as never,
+      });
+      setMetaState("done");
+      setEditing(false);
+      onMetaChanged?.();
+    } catch (e) {
+      setMetaState("error");
+      setMetaError(metaErrorText(e));
+    }
+  };
+
   const busy = tx.step === "approving" || tx.step === "confirming" || tx.step === "pending";
+  const links = [
+    meta?.website ? (["Website", meta.website] as const) : null,
+    meta?.x ? (["X", meta.x] as const) : null,
+    meta?.telegram ? (["Telegram", meta.telegram] as const) : null,
+  ].filter(Boolean) as ReadonlyArray<readonly [string, string]>;
 
   return (
     <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <section className="modal">
-        <button className="modal-x" aria-label="Close" onClick={onClose}><svg viewBox="0 0 16 16" fill="none" aria-hidden style={{ width: 13, height: 13 }}><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg></button>
-        <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 14 }}>
-          <div className="coin-avatar" style={avatarStyle(coin.symbol)}>
-            {coin.symbol.slice(0, 3)}
-          </div>
+        <button className="modal-x" aria-label="Close" onClick={onClose}><CloseIcon /></button>
+        <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 10 }}>
+          <CoinAvatar symbol={coin.symbol} image={meta?.image} />
           <div>
             <h2 style={{ margin: 0, fontSize: 22 }}>{coin.name}</h2>
             <span className="mono" style={{ color: "var(--blue)", fontWeight: 700, fontSize: 12 }}>
               ${coin.symbol} · {preset.name} vault
             </span>
           </div>
+          {isCreator && !editing && (
+            <button
+              className="btn btn-sm btn-ghost"
+              style={{ marginLeft: "auto" }}
+              onClick={() => setEditing(true)}
+            >
+              Edit info
+            </button>
+          )}
         </div>
 
-        {coin.graduated ? (
+        {meta?.description && !editing && (
+          <p className="sub" style={{ marginBottom: links.length ? 10 : 16 }}>{meta.description}</p>
+        )}
+        {links.length > 0 && !editing && (
+          <div className="trust-row" style={{ justifyContent: "flex-start", margin: "0 0 16px" }}>
+            {links.map(([label, href]) => (
+              <a className="trust-chip" key={label} href={href} target="_blank" rel="noreferrer">
+                {label} <ExternalLinkIcon />
+              </a>
+            ))}
+          </div>
+        )}
+
+        {editing ? (
+          <>
+            <MetaFields
+              description={description} setDescription={setDescription}
+              website={website} setWebsite={setWebsite}
+              x={x} setX={setX}
+              telegram={telegram} setTelegram={setTelegram}
+              file={file} setFile={setFile}
+            />
+            <div className="form-row">
+              <button className="btn btn-outline" onClick={() => setEditing(false)} disabled={metaState === "saving"}>
+                Cancel
+              </button>
+              <button className="btn btn-gold" onClick={saveMeta} disabled={metaState === "saving"}>
+                {metaState === "saving" ? "Sign in wallet…" : "Save info"}
+              </button>
+            </div>
+            {metaState === "error" && <div className="tx-note tx-error">{metaError}</div>}
+            <p className="disclaimer">
+              Stored permanently on Irys, free under 100 KB. Only the coin creator&apos;s
+              wallet can update this info; changes show within a minute.
+            </p>
+          </>
+        ) : coin.graduated ? (
           <>
             <p className="sub">
               This market has graduated. Its liquidity now lives in a locked
@@ -207,6 +390,9 @@ export function TradeModal({
             >
               View pool on Arcscan
             </a>
+            {metaState === "done" && (
+              <div className="tx-note tx-done">Info saved. It will show within a minute.</div>
+            )}
           </>
         ) : (
           <>
@@ -289,6 +475,9 @@ export function TradeModal({
                 : "Connect wallet"}
             </button>
             <TxNote tx={tx} />
+            {metaState === "done" && (
+              <div className="tx-note tx-done">Info saved. It will show within a minute.</div>
+            )}
             <p className="disclaimer">
               Arc testnet market · 1.5% trade fee routed on-chain ({preset.split}, plus 0.5% platform) ·
               testnet USDC from{" "}
@@ -318,15 +507,43 @@ export function CreateModal({
   const [preset, setPreset] = useState(0);
   const [tier, setTier] = useState(3_000);
 
+  const [description, setDescription] = useState("");
+  const [website, setWebsite] = useState("");
+  const [x, setX] = useState("");
+  const [telegram, setTelegram] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [metaState, setMetaState] = useState<"idle" | "uploading" | "error">("idle");
+  const [metaError, setMetaError] = useState("");
+  const [createdToken, setCreatedToken] = useState<`0x${string}` | null>(null);
+
   const valid = useMemo(
     () => name.trim().length >= 2 && /^[A-Z0-9]{2,10}$/.test(symbol),
     [name, symbol]
   );
 
+  const hasMeta = !!(file || description.trim() || website.trim() || x.trim() || telegram.trim());
   const busy = tx.step === "approving" || tx.step === "confirming" || tx.step === "pending";
 
+  const pushMeta = async (token: `0x${string}`) => {
+    try {
+      setMetaState("uploading");
+      setMetaError("");
+      await submitCoinMetadata({
+        token,
+        fields: cleanFields({ description, website, x, telegram }),
+        imageFile: file,
+        walletClient: wallet.walletClient()!,
+        publicClient: publicClient as never,
+      });
+      onCreated();
+    } catch (e) {
+      setMetaState("error");
+      setMetaError(metaErrorText(e));
+    }
+  };
+
   const submit = async () => {
-    if (!valid) return;
+    if (!valid || busy || metaState === "uploading") return;
     const receipt = await run({
       approvals: [{ token: USDC, amount: 10_000n, unlimited: parseUnits("1000000", 6) }],
       write: async () => {
@@ -349,13 +566,33 @@ export function CreateModal({
         });
       },
     });
-    if (receipt) onCreated();
+    if (!receipt) return;
+
+    let token: `0x${string}` | null = null;
+    for (const log of receipt.logs) {
+      try {
+        const ev = decodeEventLog({ abi: launchpadAbi, data: log.data, topics: log.topics });
+        if (ev.eventName === "CoinCreated") {
+          token = (ev.args as { token: `0x${string}` }).token;
+          break;
+        }
+      } catch {
+        // other contracts' logs in the same receipt
+      }
+    }
+
+    if (!token || !hasMeta) {
+      onCreated();
+      return;
+    }
+    setCreatedToken(token);
+    await pushMeta(token);
   };
 
   return (
     <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <section className="modal">
-        <button className="modal-x" aria-label="Close" onClick={onClose}><svg viewBox="0 0 16 16" fill="none" aria-hidden style={{ width: 13, height: 13 }}><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg></button>
+        <button className="modal-x" aria-label="Close" onClick={onClose}><CloseIcon /></button>
         <span className="overline">Create on ArcPad</span>
         <h2>Turn a meme into a market</h2>
         <p className="sub">
@@ -378,6 +615,14 @@ export function CreateModal({
             />
           </label>
         </div>
+
+        <MetaFields
+          description={description} setDescription={setDescription}
+          website={website} setWebsite={setWebsite}
+          x={x} setX={setX}
+          telegram={telegram} setTelegram={setTelegram}
+          file={file} setFile={setFile}
+        />
 
         <div className="field">
           <span>Fee vault preset (routes 1% of every trade)</span>
@@ -403,17 +648,37 @@ export function CreateModal({
           </div>
         </div>
 
-        <button
-          className="btn btn-gold btn-lg"
-          style={{ width: "100%" }}
-          disabled={!valid || busy}
-          onClick={submit}
-        >
-          {wallet.connected ? "Deploy coin on Arc" : "Connect wallet to deploy"}
-        </button>
+        {metaState === "error" && createdToken ? (
+          <>
+            <div className="tx-note tx-done">
+              Coin deployed on Arc. Metadata is the only step left.
+            </div>
+            <div className="tx-note tx-error">{metaError}</div>
+            <div className="form-row" style={{ marginTop: 12 }}>
+              <button className="btn btn-outline" onClick={onCreated}>Skip for now</button>
+              <button className="btn btn-gold" onClick={() => pushMeta(createdToken)}>
+                Retry metadata
+              </button>
+            </div>
+          </>
+        ) : (
+          <button
+            className="btn btn-gold btn-lg"
+            style={{ width: "100%" }}
+            disabled={!valid || busy || metaState === "uploading"}
+            onClick={submit}
+          >
+            {metaState === "uploading"
+              ? "Storing metadata, sign in wallet…"
+              : wallet.connected
+                ? "Deploy coin on Arc"
+                : "Connect wallet to deploy"}
+          </button>
+        )}
         <TxNote tx={tx} />
         <p className="disclaimer">
-          Creation fee $0.01 + gas (paid in testnet USDC) · contract{" "}
+          Creation fee $0.01 + gas (paid in testnet USDC) · logo and links stored
+          permanently on Irys, free under 100 KB · contract{" "}
           <a href={`${EXPLORER}/address/${LAUNCHPAD}`} target="_blank" rel="noreferrer">
             verified on Arcscan
           </a>

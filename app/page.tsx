@@ -11,7 +11,8 @@ import {
   PRESETS,
 } from "./lib/arcpad";
 import { useArcPadData, useWallet } from "./lib/useArcPad";
-import { avatarStyle } from "./components/modals";
+import { useMeta } from "./lib/useMeta";
+import { CoinAvatar } from "./components/avatar";
 import {
   ArrowRightIcon,
   ExternalLinkIcon,
@@ -87,6 +88,7 @@ function LockIcon() {
 export default function Landing() {
   const wallet = useWallet();
   const { coins, loading } = useArcPadData();
+  const { metas } = useMeta();
 
   const totals = {
     coins: coins.length,
@@ -156,9 +158,7 @@ export default function Landing() {
           {featured && (
             <div className="feat-card rise d5">
               <div className="feat-id">
-                <div className="coin-avatar" style={avatarStyle(featured.symbol)}>
-                  {featured.symbol.slice(0, 3)}
-                </div>
+                <CoinAvatar symbol={featured.symbol} image={metas[featured.token.toLowerCase()]?.image} />
                 <div>
                   <strong>{featured.name}</strong>
                   <span className="mono">

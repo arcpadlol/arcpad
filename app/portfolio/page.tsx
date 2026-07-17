@@ -13,7 +13,9 @@ import {
   type CoinInfo,
 } from "../lib/arcpad";
 import { useArcPadData, useTx, useWallet } from "../lib/useArcPad";
-import { avatarStyle, TradeModal } from "../components/modals";
+import { useMeta } from "../lib/useMeta";
+import { TradeModal } from "../components/modals";
+import { CoinAvatar } from "../components/avatar";
 import { Footer, Notice, Topbar } from "../components/chrome";
 
 /** Estimated curve value of a balance, in 6d USDC units. */
@@ -22,6 +24,7 @@ const positionValue = (price6: bigint, bal18: bigint) => (price6 * bal18) / 10n 
 export default function PortfolioPage() {
   const wallet = useWallet();
   const { coins, loading, reload } = useArcPadData();
+  const { metas, refreshMetas } = useMeta();
   const { tx, run } = useTx(wallet);
 
   const [balances, setBalances] = useState<Record<string, bigint>>({});
@@ -170,9 +173,11 @@ export default function PortfolioPage() {
                 </div>
                 {holdings.map((c) => (
                   <div className="act-row" key={c.token}>
-                    <div className="coin-avatar" style={{ ...avatarStyle(c.symbol), width: 38, height: 38, borderRadius: 11, fontSize: 12.5 }}>
-                      {c.symbol.slice(0, 3)}
-                    </div>
+                    <CoinAvatar
+                      symbol={c.symbol}
+                      image={metas[c.token.toLowerCase()]?.image}
+                      style={{ width: 38, height: 38, borderRadius: 11, fontSize: 12.5 }}
+                    />
                     <div className="act-main">
                       <b>{c.name}</b>
                       <small>
@@ -199,12 +204,14 @@ export default function PortfolioPage() {
       {selected && (
         <TradeModal
           coin={selected}
+          meta={metas[selected.token.toLowerCase()]}
           wallet={wallet}
           onClose={() => setSelected(null)}
           onChanged={() => {
             reload();
             loadPositions();
           }}
+          onMetaChanged={refreshMetas}
         />
       )}
     </main>

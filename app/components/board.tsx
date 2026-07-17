@@ -12,7 +12,9 @@ import {
   type CoinInfo,
 } from "../lib/arcpad";
 import { useArcPadData, useWallet } from "../lib/useArcPad";
-import { avatarStyle, CreateModal, TradeModal } from "../components/modals";
+import { useMeta } from "../lib/useMeta";
+import { CreateModal, TradeModal } from "../components/modals";
+import { CoinAvatar } from "../components/avatar";
 import { ActivityList } from "../components/activity";
 import { Footer, Notice, Topbar, TrendUpIcon } from "../components/chrome";
 
@@ -67,6 +69,7 @@ function StatusChip({ coin }: { coin: CoinInfo }) {
 export function BoardApp({ initialCreate = false }: { initialCreate?: boolean }) {
   const wallet = useWallet();
   const { coins, activity, loading, error, reload } = useArcPadData();
+  const { metas, refreshMetas } = useMeta();
   const [tab, setTab] = useState<Tab>("new");
   const [view, setView] = useState<View>("card");
   const [query, setQuery] = useState("");
@@ -134,9 +137,7 @@ export function BoardApp({ initialCreate = false }: { initialCreate?: boolean })
             {trending.map((t, i) => (
               <button className="trend-card" key={t.coin.token} onClick={() => setSelected(t.coin)}>
                 <span className="trend-rank">#{i + 1}</span>
-                <span className="coin-avatar" style={avatarStyle(t.coin.symbol)}>
-                  {t.coin.symbol.slice(0, 3)}
-                </span>
+                <CoinAvatar symbol={t.coin.symbol} image={metas[t.coin.token.toLowerCase()]?.image} />
                 <span className="trend-main">
                   <b>{t.coin.name}</b>
                   <small>${t.coin.symbol}</small>
@@ -196,9 +197,7 @@ export function BoardApp({ initialCreate = false }: { initialCreate?: boolean })
                 {list.map((c) => (
                   <button className="coin-card" key={c.token} onClick={() => setSelected(c)}>
                     <div className="coin-top">
-                      <div className="coin-avatar" style={avatarStyle(c.symbol)}>
-                        {c.symbol.slice(0, 3)}
-                      </div>
+                      <CoinAvatar symbol={c.symbol} image={metas[c.token.toLowerCase()]?.image} />
                       <div className="coin-title">
                         <strong>{c.name}</strong>
                         <span>${c.symbol}</span>
@@ -264,9 +263,7 @@ export function BoardApp({ initialCreate = false }: { initialCreate?: boolean })
                         <tr key={c.token} onClick={() => setSelected(c)}>
                           <td>
                             <div className="t-token">
-                              <span className="coin-avatar" style={avatarStyle(c.symbol)}>
-                                {c.symbol.slice(0, 3)}
-                              </span>
+                              <CoinAvatar symbol={c.symbol} image={metas[c.token.toLowerCase()]?.image} />
                               <span className="t-name">
                                 <b>{c.name}</b>
                                 <small>${c.symbol}</small>
@@ -322,9 +319,11 @@ export function BoardApp({ initialCreate = false }: { initialCreate?: boolean })
       {selected && (
         <TradeModal
           coin={selected}
+          meta={metas[selected.token.toLowerCase()]}
           wallet={wallet}
           onClose={() => setSelected(null)}
           onChanged={reload}
+          onMetaChanged={refreshMetas}
         />
       )}
       {creating && (

@@ -566,6 +566,34 @@ footer { margin-top: auto; background: var(--navy); color: #b9cbe6; }
 .option small { display: block; font-size: 10.5px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
 .option .mono-num { font: 700 15px/1 var(--font-mono); color: var(--navy); }
 
+.field textarea { resize: vertical; min-height: 60px; }
+
+.img-pick {
+  display: flex; align-items: center; gap: 12px; cursor: pointer;
+  border: 1.5px dashed var(--line-strong); border-radius: 14px;
+  background: var(--bg); padding: 10px 14px; transition: 0.15s;
+}
+.img-pick:hover { border-color: var(--blue); }
+.img-pick img, .img-pick-empty {
+  width: 44px; height: 44px; border-radius: 12px; flex: none;
+  object-fit: cover; display: grid; place-items: center;
+  background: var(--tint); color: var(--blue);
+}
+.img-pick-text { min-width: 0; }
+.img-pick-text b { display: block; font-size: 13px; color: var(--navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.img-pick-text small { display: block; font-size: 10.5px; color: var(--muted); line-height: 1.5; }
+
+/* docs */
+.docs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.icon-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 12px;
+  background: var(--tint); color: var(--blue);
+}
+@media (max-width: 760px) {
+  .docs-grid, .docs-grid[style] { grid-template-columns: 1fr !important; }
+}
+
 .quote-box {
   border: 1px solid var(--line); border-radius: 14px; background: var(--bg);
   padding: 13px 15px; display: flex; justify-content: space-between; align-items: center;

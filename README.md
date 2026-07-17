@@ -28,7 +28,7 @@ pull. The contract enforces all of it.
 
 | Contract | Address |
 |---|---|
-| ArcPadLaunchpad (verified) | [`0x8eA715A26fCa0c474c81D65142439b306c1Be131`](https://testnet.arcscan.app/address/0x8eA715A26fCa0c474c81D65142439b306c1Be131) |
+| ArcPadLaunchpad (verified) | [`0xdf155bA386ab42cBBD0EE043cf9f6bA17E7A3ac3`](https://testnet.arcscan.app/address/0xdf155bA386ab42cBBD0EE043cf9f6bA17E7A3ac3) |
 | USDC (ERC-20 interface, 6 decimals) | `0x3600000000000000000000000000000000000000` |
 | UNITFLOW V3 factory (graduation venue) | `0xAb6A8AAb7d490007634ef59d424b5d89688a1971` |
 | UNITFLOW position manager (locked LP) | `0x77c39eB310BE31e60068CE29855F83359bf85fc4` |
