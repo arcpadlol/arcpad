@@ -54,89 +54,129 @@ export default function DocsPage() {
       <Notice />
       <Topbar wallet={wallet} />
 
-      <section className="section shell">
-        <span className="section-kicker">Docs</span>
-        <div className="section-head">
-          <h2>How ArcPad works</h2>
-          <span className="count">everything below is enforced by the contract on Arc testnet</span>
-        </div>
-
-        <div className="docs-grid">
-          {SECTIONS.map((s) => (
-            <div className="flow-step" key={s.title}>
-              <span className="icon-badge"><Icon d={s.icon} /></span>
-              <b>{s.title}</b>
-              <p>{s.body}</p>
+      <section className="section shell token-board-section board-terminal-section">
+        <div className="pixel-terminal board-terminal">
+          <div className="terminal-topline">
+            <div className="terminal-brand"><span className="pixel-mark">◆</span><span>CITIZEN / DOCS</span></div>
+            <span className="terminal-status"><i /> ENFORCED ON-CHAIN</span>
+          </div>
+          <div className="graduated-head">
+            <div>
+              <span className="pixel-kicker">DOCUMENTATION</span>
+              <h2>How Citizen works</h2>
+              <p>Everything below is enforced by the verified contract on Arc testnet — not by a server.</p>
             </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="section shell" id="security" style={{ paddingTop: 0 }}>
-        <span className="section-kicker">Security</span>
-        <div className="section-head">
-          <h2>Reviewed, verified, still testnet</h2>
-        </div>
-        <div className="docs-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
-          <div className="flow-step">
-            <b>What has been done</b>
-            <p>
-              The launchpad source is verified on{" "}
-              <a href={`${EXPLORER}/address/${LAUNCHPAD}`} target="_blank" rel="noreferrer">Arcscan</a>{" "}
-              and published on{" "}
-              <a href={GITHUB_URL} target="_blank" rel="noreferrer">GitHub</a>{" "}
-              with its full test suite covering curve math, fee routing,
-              graduation, buybacks and admin limits. The contracts have had an
-              internal security review, and its findings are being resolved
-              before any mainnet deployment.
-            </p>
+            <div className="board-stats docs-head-stats">
+              <div className="board-stat"><strong>1B</strong><span>Fixed supply</span></div>
+              <div className="board-stat"><strong>1.5%</strong><span>Trade fee</span></div>
+              <div className="board-stat"><strong>Locked</strong><span>At graduation</span></div>
+            </div>
           </div>
-          <div className="flow-step">
-            <b>What has not</b>
-            <p>
-              No independent third-party audit yet. ArcPad runs on Arc testnet
-              only: tokens are speculative test assets with no value, and the
-              contracts must not be used to hold real funds until the review
-              findings are fixed and an external audit is complete.
-            </p>
+
+          <div className="docs-list">
+            {SECTIONS.map((s, i) => (
+              <article className="docs-card" key={s.title}>
+                <div className="docs-card-head">
+                  <span className="docs-card-icon"><Icon d={s.icon} /></span>
+                  <span className="docs-card-num">{String(i + 1).padStart(2, "0")}</span>
+                </div>
+                <b>{s.title}</b>
+                <p>{s.body}</p>
+              </article>
+            ))}
+          </div>
+
+          <div className="terminal-footer">
+            <span>DOCS — 01</span>
+            <span className="terminal-dots">● ○ ○</span>
+            <a href={`${EXPLORER}/address/${LAUNCHPAD}`} target="_blank" rel="noreferrer">Verified contract ↗</a>
           </div>
         </div>
       </section>
 
-      <section className="section shell" style={{ paddingTop: 0 }}>
-        <span className="section-kicker">Getting started</span>
-        <div className="section-head">
-          <h2>Three steps to your first trade</h2>
+      <section className="section shell token-board-section board-terminal-section" id="security" style={{ paddingTop: 0 }}>
+        <div className="pixel-terminal board-terminal">
+          <div className="terminal-topline">
+            <div className="terminal-brand"><span className="pixel-mark">◆</span><span>CITIZEN / SECURITY</span></div>
+            <span className="terminal-status"><i /> TESTNET ONLY</span>
+          </div>
+          <div className="graduated-head">
+            <div>
+              <span className="pixel-kicker">SECURITY</span>
+              <h2>Reviewed, verified, still testnet</h2>
+              <p>What has been checked so far, and what has not — read both before you trade.</p>
+            </div>
+          </div>
+          <div className="docs-list docs-list-2">
+            <article className="docs-card docs-card-ok">
+              <b>What has been done</b>
+              <p>
+                The launchpad source is verified on{" "}
+                <a href={`${EXPLORER}/address/${LAUNCHPAD}`} target="_blank" rel="noreferrer">Arcscan</a>{" "}
+                and published on{" "}
+                <a href={GITHUB_URL} target="_blank" rel="noreferrer">GitHub</a>{" "}
+                with its full test suite covering curve math, fee routing,
+                graduation, buybacks and admin limits. The contracts have had an
+                internal security review, and its findings are being resolved
+                before any mainnet deployment.
+              </p>
+            </article>
+            <article className="docs-card docs-card-warn">
+              <b>What has not</b>
+              <p>
+                No independent third-party audit yet. Citizen runs on Arc testnet
+                only: tokens are speculative test assets with no value, and the
+                contracts must not be used to hold real funds until the review
+                findings are fixed and an external audit is complete.
+              </p>
+            </article>
+          </div>
         </div>
-        <div className="docs-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
-          <div className="flow-step">
-            <span className="flow-num">01</span>
-            <b>Get testnet USDC</b>
-            <p>
-              Grab free testnet USDC from{" "}
-              <a href={FAUCET} target="_blank" rel="noreferrer">Circle&apos;s faucet</a>{" "}
-              (choose Arc Testnet). Gas on Arc is paid in USDC too, so that is
-              all you need.
-            </p>
+      </section>
+
+      <section className="section shell token-board-section board-terminal-section" style={{ paddingTop: 0 }}>
+        <div className="pixel-terminal board-terminal">
+          <div className="terminal-topline">
+            <div className="terminal-brand"><span className="pixel-mark">◆</span><span>CITIZEN / GET STARTED</span></div>
+            <span className="terminal-status"><i /> LIVE ON ARC</span>
           </div>
-          <div className="flow-step">
-            <span className="flow-num">02</span>
-            <b>Connect a wallet</b>
-            <p>
-              Any injected EVM wallet such as MetaMask works. ArcPad adds and
-              switches to the Arc Testnet network (chain id 5042002) for you on
-              first use.
-            </p>
+          <div className="graduated-head">
+            <div>
+              <span className="pixel-kicker">GETTING STARTED</span>
+              <h2>Three steps to your first trade</h2>
+              <p>From an empty wallet to your first launch in under a minute.</p>
+            </div>
           </div>
-          <div className="flow-step">
-            <span className="flow-num">03</span>
-            <b>Trade or launch</b>
-            <p>
-              Buy a coin from the <Link href="/app">board</Link>, or{" "}
-              <Link href="/create">create your own</Link> for a cent. Your
-              positions and claimable fees live in{" "}
-              <Link href="/portfolio">portfolio</Link>.
-            </p>
+          <div className="docs-list docs-list-3">
+            <article className="docs-card docs-step">
+              <span className="docs-card-num">01</span>
+              <b>Get testnet USDC</b>
+              <p>
+                Grab free testnet USDC from{" "}
+                <a href={FAUCET} target="_blank" rel="noreferrer">Circle&apos;s faucet</a>{" "}
+                (choose Arc Testnet). Gas on Arc is paid in USDC too, so that is
+                all you need.
+              </p>
+            </article>
+            <article className="docs-card docs-step">
+              <span className="docs-card-num">02</span>
+              <b>Connect a wallet</b>
+              <p>
+                Any injected EVM wallet such as MetaMask works. Citizen adds and
+                switches to the Arc Testnet network (chain id 5042002) for you on
+                first use.
+              </p>
+            </article>
+            <article className="docs-card docs-step">
+              <span className="docs-card-num">03</span>
+              <b>Trade or launch</b>
+              <p>
+                Buy a coin from the <Link href="/app">board</Link>, or{" "}
+                <Link href="/create">create your own</Link> for a cent. Your
+                positions and claimable fees live in{" "}
+                <Link href="/portfolio">portfolio</Link>.
+              </p>
+            </article>
           </div>
         </div>
       </section>

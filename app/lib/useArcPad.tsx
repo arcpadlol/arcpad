@@ -100,12 +100,29 @@ export function useWallet() {
     return clientRef.current;
   }, []);
 
+  const disconnect = useCallback(async () => {
+    // Injected wallets can't be force-disconnected, but we can revoke the
+    // dapp's account permission where supported and clear local UI state.
+    try {
+      await window.ethereum?.request?.({
+        method: "wallet_revokePermissions",
+        params: [{ eth_accounts: {} }],
+      });
+    } catch {
+      // wallet doesn't support revoke — clearing local state is enough
+    }
+    clientRef.current = null;
+    setAccount(null);
+    setChainId(null);
+  }, []);
+
   return {
     account,
     connected: !!account,
     onArc: chainId === arcTestnet.id,
     connect,
     ensureChain,
+    disconnect,
     walletClient,
   };
 }

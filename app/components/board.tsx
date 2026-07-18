@@ -124,6 +124,13 @@ export function BoardApp({ initialCreate = false }: { initialCreate?: boolean })
       .slice(0, 6);
   }, [coins, activity]);
 
+  // Same aggregate logic as the landing hero: derived live from chain data.
+  const totals = {
+    launched: coins.length,
+    raised: coins.reduce((s, c) => s + c.realUsdc, 0n),
+    graduated: coins.filter((c) => c.graduated).length,
+  };
+
   return (
     <main className="app">
       <Notice />
@@ -132,7 +139,7 @@ export function BoardApp({ initialCreate = false }: { initialCreate?: boolean })
       <section className="section shell token-board-section board-terminal-section" id="board">
         <div className="pixel-terminal board-terminal">
         <div className="terminal-topline">
-          <div className="terminal-brand"><span className="pixel-mark">◆</span><span>ARCPAD / COIN BOARD</span></div>
+          <div className="terminal-brand"><span className="pixel-mark">◆</span><span>CITIZEN / COIN BOARD</span></div>
           <span className="terminal-status"><i /> LIVE ON ARC</span>
         </div>
         <div className="graduated-head">
@@ -141,7 +148,11 @@ export function BoardApp({ initialCreate = false }: { initialCreate?: boolean })
             <h2>Coin board</h2>
             <p>{loading ? "Reading markets from Arc…" : "Live buys move market caps and push every token toward graduation."}</p>
           </div>
-          <div className="terminal-count"><strong>{String(list.length).padStart(2, "0")}</strong><span>MARKETS</span></div>
+          <div className="board-stats">
+            <div className="board-stat"><strong>{loading ? "…" : totals.launched}</strong><span>Launched</span></div>
+            <div className="board-stat"><strong>{loading ? "…" : fmtUsd(totals.raised)}</strong><span>USDC raised</span></div>
+            <div className="board-stat"><strong>{loading ? "…" : totals.graduated}</strong><span>Graduated</span></div>
+          </div>
         </div>
         <div className="board-controls">
           <label className="search">
@@ -225,47 +236,54 @@ export function BoardApp({ initialCreate = false }: { initialCreate?: boolean })
             )}
 
             {view === "card" ? (
-              <div className="graduated-grid board-cards">
-                {list.map((c, i) => {
-                  const pct = Math.min(100, Number(c.progressBps) / 100);
-                  const image = metas[c.token.toLowerCase()]?.image ?? tokenImage(c.symbol);
-                  return (
-                    <button
-                      className="graduated-token board-card"
-                      key={c.token}
-                      onClick={() => router.push(`/token/${c.token}`)}
-                      style={{ "--token-accent": ACCENTS[i % ACCENTS.length], "--bonding-progress": `${pct}%` } as React.CSSProperties}
-                    >
-                      <div className="token-art">
-                        {image ? (
-                          <Image src={image} alt={`${c.name} token artwork`} fill sizes="(max-width: 700px) 92vw, 300px" />
-                        ) : (
-                          <span style={avatarStyle(c.symbol)}>{c.symbol.slice(0, 3)}</span>
-                        )}
-                        <i />
-                      </div>
-                      <div className="token-info">
-                        <span className="graduated-badge">{c.graduated ? "GRADUATED" : "BONDING LIVE"}</span>
+              <div className="coin-grid board-token-grid">
+                {list.map((c) => (
+                  <button className="coin-card board-coin-card" key={c.token} onClick={() => router.push(`/token/${c.token}`)}>
+                    <div className="coin-top">
+                      <CoinAvatar symbol={c.symbol} image={metas[c.token.toLowerCase()]?.image} />
+                      <div className="coin-title">
                         <strong>{c.name}</strong>
-                        <small>${c.symbol} · {(PRESETS[c.preset] ?? PRESETS[0]).name} vault</small>
+                        <span>${c.symbol}</span>
                       </div>
-                      <div className="token-metrics">
-                        <span><b>{fmtUsd(marketCap(c.price) / 10n ** 18n)}</b> MC</span>
-                        <span><b>{fmtUsd(c.realUsdc)}</b> RAISED</span>
-                        <span><b>{fmtPrice(c.price)}</b></span>
+                      <div className="coin-flags">
+                        <span className="chip chip-vault">
+                          {(PRESETS[c.preset] ?? PRESETS[0]).name} vault
+                        </span>
+                        <StatusChip coin={c} />
                       </div>
-                      <div className="graduated-progress"><div><i><b /><b /><b /><b /></i></div><span>{pct.toFixed(1)}%</span></div>
-                      <div className="token-lock">
-                        <span>{c.graduated ? "LP LOCKED" : "CURVE ACTIVE"}</span>
-                        <span>{short(c.token)}</span>
+                    </div>
+                    <div className="coin-data">
+                      <div>
+                        <span>Price</span>
+                        <b>{fmtPrice(c.price)}</b>
                       </div>
-                      <div className="token-lock">
-                        <span>BY {short(c.creator)}</span>
-                        <span>TARGET {fmtUsd(c.raiseTarget, 0)}</span>
+                      <div>
+                        <span>Market cap</span>
+                        <b>{fmtUsd(marketCap(c.price) / 10n ** 18n)}</b>
                       </div>
-                    </button>
-                  );
-                })}
+                      <div>
+                        <span>Raised</span>
+                        <b>{fmtUsd(c.realUsdc)}</b>
+                      </div>
+                    </div>
+                    <div className="bond">
+                      <div className="bond-label">
+                        <span>Bonding curve</span>
+                        <b>{(Number(c.progressBps) / 100).toFixed(1)}%</b>
+                      </div>
+                      <div className="bond-track">
+                        <i
+                          className="bond-fill"
+                          style={{ width: `${Math.min(100, Number(c.progressBps) / 100)}%`, display: "block" }}
+                        />
+                      </div>
+                    </div>
+                    <div className="coin-foot">
+                      <span>by <span className="mono">{short(c.creator)}</span></span>
+                      <span>target {fmtUsd(c.raiseTarget, 0)}</span>
+                    </div>
+                  </button>
+                ))}
               </div>
             ) : view === "grid" ? (
               <div className="graduated-grid board-mosaic">

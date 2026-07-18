@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { FAUCET, GITHUB_URL, X_URL, short } from "../lib/arcpad";
+import { EXPLORER, FAUCET, GITHUB_URL, X_URL, short } from "../lib/arcpad";
 import { useWallet } from "../lib/useArcPad";
 
 export function ArcMark({ size = 26 }: { size?: number }) {
@@ -70,12 +70,12 @@ export function SocialLinks({ className = "icon-link" }: { className?: string })
   return (
     <>
       {X_URL && (
-        <a className={className} href={X_URL} target="_blank" rel="noreferrer" aria-label="ArcPad on X">
+        <a className={className} href={X_URL} target="_blank" rel="noreferrer" aria-label="Citizen on X">
           <XIcon />
         </a>
       )}
       {GITHUB_URL && (
-        <a className={className} href={GITHUB_URL} target="_blank" rel="noreferrer" aria-label="ArcPad on GitHub">
+        <a className={className} href={GITHUB_URL} target="_blank" rel="noreferrer" aria-label="Citizen on GitHub">
           <GitHubIcon />
         </a>
       )}
@@ -114,6 +114,8 @@ const NAV = [
 ];
 
 function ConnectControl({ wallet, landing = false }: { wallet: ReturnType<typeof useWallet>; landing?: boolean }) {
+  const [menu, setMenu] = useState(false);
+
   if (landing) {
     return <Link className="btn btn-primary open-app-btn" href="/app">Open App <ArrowRightIcon /></Link>;
   }
@@ -132,10 +134,55 @@ function ConnectControl({ wallet, landing = false }: { wallet: ReturnType<typeof
     );
   }
   return (
-    <span className="wallet-chip">
-      <i className="dot" />
-      {short(wallet.account!)}
-    </span>
+    <div className="wallet-menu-wrap">
+      <button
+        className="wallet-chip"
+        aria-haspopup="menu"
+        aria-expanded={menu}
+        onClick={() => setMenu((v) => !v)}
+      >
+        <i className="dot" />
+        {short(wallet.account!)}
+        <svg viewBox="0 0 16 16" fill="none" aria-hidden style={{ width: 12, height: 12, opacity: 0.7 }}>
+          <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      {menu && (
+        <>
+          <button className="wallet-menu-backdrop" aria-label="Close menu" onClick={() => setMenu(false)} />
+          <div className="wallet-menu" role="menu">
+            <button
+              role="menuitem"
+              onClick={() => {
+                navigator.clipboard?.writeText(wallet.account!);
+                setMenu(false);
+              }}
+            >
+              Copy address
+            </button>
+            <a
+              role="menuitem"
+              href={`${EXPLORER}/address/${wallet.account}`}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => setMenu(false)}
+            >
+              View on Arcscan
+            </a>
+            <button
+              role="menuitem"
+              className="wallet-disconnect"
+              onClick={() => {
+                wallet.disconnect();
+                setMenu(false);
+              }}
+            >
+              Disconnect
+            </button>
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 
@@ -163,7 +210,7 @@ export function Topbar({ wallet, landing = false }: { wallet: ReturnType<typeof 
       <div className="shell topbar-inner">
         <Link className="logo" href="/">
           <ArcMark />
-          <span className="logo-name">arc<b>pad</b></span>
+          <span className="logo-name">Citi<b>zen</b></span>
           <span className="badge-testnet">TESTNET</span>
         </Link>
         <nav className="topnav">{links()}</nav>
@@ -207,7 +254,7 @@ export function Footer({ launchpad, explorer }: { launchpad: string; explorer: s
       <div className="shell foot-inner">
         <Link className="logo" href="/">
           <ArcMark />
-          <span className="logo-name">arc<b>pad</b></span>
+          <span className="logo-name">Citi<b>zen</b></span>
         </Link>
         <div className="foot-links">
           <Link href="/app">Board</Link>

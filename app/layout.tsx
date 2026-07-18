@@ -25,18 +25,18 @@ const spaceMono = localFont({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.arcpad.lol"),
-  title: "ArcPad — The USDC-native meme launchpad on Arc",
+  title: "Citizen — The USDC-native meme launchpad on Arc",
   description:
     "Launch and trade meme tokens on Arc testnet. USDC bonding curves, programmable fee vaults, transparent graduation to locked DEX liquidity.",
   openGraph: {
-    title: "ArcPad — The USDC-native meme launchpad on Arc",
+    title: "Citizen — The USDC-native meme launchpad on Arc",
     description:
       "Launch and trade meme tokens on Arc testnet. USDC bonding curves, programmable fee vaults, transparent graduation to locked DEX liquidity.",
     images: [{ url: "/og.png", width: 1735, height: 907 }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "ArcPad — The USDC-native meme launchpad on Arc",
+    title: "Citizen — The USDC-native meme launchpad on Arc",
     description:
       "Launch and trade meme tokens on Arc testnet. USDC bonding curves, programmable fee vaults, transparent graduation to locked DEX liquidity.",
     images: ["/og.png"],

@@ -100,103 +100,108 @@ export default function PortfolioPage() {
       <Notice />
       <Topbar wallet={wallet} />
 
-      <section className="section shell">
-        <span className="section-kicker">Your positions</span>
-        <div className="section-head">
-          <h2>Portfolio</h2>
-          <span className="count">
-            {wallet.connected
-              ? loading || reading
-                ? "reading Arc…"
-                : `${holdings.length} positions · est. ${fmtUsd(totalValue)}`
-              : "connect a wallet to see your positions"}
-          </span>
-        </div>
-
-        {!wallet.connected ? (
-          <div className="empty">
-            <h3>No wallet connected</h3>
-            <p>Connect an injected wallet to see your ArcPad coins and claimable vault fees.</p>
-            <button className="btn btn-primary" onClick={wallet.connect}>Connect wallet</button>
+      <section className="section shell token-board-section board-terminal-section">
+        <div className="pixel-terminal board-terminal">
+          <div className="terminal-topline">
+            <div className="terminal-brand"><span className="pixel-mark">◆</span><span>CITIZEN / PORTFOLIO</span></div>
+            <span className="terminal-status"><i /> LIVE ON ARC</span>
           </div>
-        ) : (
-          <>
-            <div className="aside-card" style={{ maxWidth: 760, marginBottom: 20 }}>
-              <div className="act-row">
-                <div className="act-main">
-                  <b style={{ fontFamily: "var(--font-body)" }}>Claimable vault fees</b>
-                  <small>
-                    Your share of trading fees, routed by each coin&apos;s vault preset.
-                  </small>
+          <div className="graduated-head">
+            <div>
+              <span className="pixel-kicker">YOUR POSITIONS</span>
+              <h2>Portfolio</h2>
+              <p>
+                {wallet.connected
+                  ? loading || reading
+                    ? "Reading your positions from Arc…"
+                    : "Your live curve positions and claimable vault fees, enforced on-chain."
+                  : "Connect a wallet to see your positions."}
+              </p>
+            </div>
+            <div className="terminal-count"><strong>{String(holdings.length).padStart(2, "0")}</strong><span>POSITIONS</span></div>
+          </div>
+
+          {!wallet.connected ? (
+            <div className="empty">
+              <h3>No wallet connected</h3>
+              <p>Connect an injected wallet to see your Citizen coins and claimable vault fees.</p>
+              <button className="btn btn-primary" onClick={wallet.connect}>Connect wallet</button>
+            </div>
+          ) : (
+            <>
+              <div className="claim-strip">
+                <div className="claim-main">
+                  <b>Claimable vault fees</b>
+                  <small>Your share of trading fees, routed by each coin&apos;s vault preset.</small>
                 </div>
-                <span className="mono" style={{ fontWeight: 700, color: "var(--navy)" }}>
-                  {claimable === null ? "…" : fmtUsd(claimable)}
-                </span>
-                <button
-                  className="btn btn-sm btn-gold"
-                  disabled={busy || !claimable}
-                  onClick={claim}
-                >
+                <span className="claim-amount mono">{claimable === null ? "…" : fmtUsd(claimable)}</span>
+                <button className="btn btn-sm btn-gold" disabled={busy || !claimable} onClick={claim}>
                   Claim USDC
                 </button>
               </div>
               {tx.step === "done" && (
-                <div className="act-row">
-                  <div className="tx-note tx-done" style={{ margin: 0, width: "100%" }}>
-                    Fees claimed.{" "}
-                    <a href={`${EXPLORER}/tx/${tx.hash}`} target="_blank" rel="noreferrer">
-                      View on Arcscan
-                    </a>
-                  </div>
+                <div className="tx-note tx-done">
+                  Fees claimed.{" "}
+                  <a href={`${EXPLORER}/tx/${tx.hash}`} target="_blank" rel="noreferrer">View on Arcscan</a>
                 </div>
               )}
-              {tx.step === "error" && (
-                <div className="act-row">
-                  <div className="tx-note tx-error" style={{ margin: 0, width: "100%" }}>
-                    {tx.message}
-                  </div>
-                </div>
-              )}
-            </div>
+              {tx.step === "error" && <div className="tx-note tx-error">{tx.message}</div>}
 
-            {holdings.length === 0 && !loading && !reading ? (
-              <div className="empty">
-                <h3>No positions yet</h3>
-                <p>Buy a coin on the board and it will show up here.</p>
-                <a className="btn btn-gold" href="/app">Open the board</a>
-              </div>
-            ) : (
-              <div className="aside-card" style={{ maxWidth: 760 }}>
-                <div className="aside-head">
-                  <span>HOLDINGS</span>
-                  <span>{loading || reading ? "…" : `EST. ${fmtUsd(totalValue)}`}</span>
+              {holdings.length === 0 && !loading && !reading ? (
+                <div className="empty">
+                  <h3>No positions yet</h3>
+                  <p>Buy a coin on the board and it will show up here.</p>
+                  <a className="btn btn-gold" href="/app">Open the board</a>
                 </div>
-                {holdings.map((c) => (
-                  <div className="act-row" key={c.token}>
-                    <CoinAvatar
-                      symbol={c.symbol}
-                      image={metas[c.token.toLowerCase()]?.image}
-                      style={{ width: 38, height: 38, borderRadius: 11, fontSize: 12.5 }}
-                    />
-                    <div className="act-main">
-                      <b>{c.name}</b>
-                      <small>
-                        {fmtToken(balances[c.token] ?? 0n)} ${c.symbol}
-                        {c.graduated ? " · graduated" : " · on curve"}
-                      </small>
-                    </div>
-                    <span className="mono" style={{ fontWeight: 700, color: "var(--navy)" }}>
-                      {fmtUsd(positionValue(c.price, balances[c.token] ?? 0n))}
-                    </span>
-                    <button className="btn btn-sm btn-outline" onClick={() => setSelected(c)}>
-                      Trade
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </>
-        )}
+              ) : (
+                <div className="table-wrap">
+                  <table className="coin-table">
+                    <thead>
+                      <tr>
+                        <th>Token</th>
+                        <th>Balance</th>
+                        <th>Status</th>
+                        <th>Est. value</th>
+                        <th aria-label="Action" />
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {holdings.map((c) => (
+                        <tr key={c.token}>
+                          <td>
+                            <div className="t-token">
+                              <CoinAvatar symbol={c.symbol} image={metas[c.token.toLowerCase()]?.image} />
+                              <span className="t-name">
+                                <b>{c.name}</b>
+                                <small>${c.symbol}</small>
+                              </span>
+                            </div>
+                          </td>
+                          <td className="mono">{fmtToken(balances[c.token] ?? 0n)}</td>
+                          <td>
+                            <span className={`chip ${c.graduated ? "chip-grad" : "chip-live"}`}>
+                              {c.graduated ? "GRADUATED" : "ON CURVE"}
+                            </span>
+                          </td>
+                          <td className="mono">{fmtUsd(positionValue(c.price, balances[c.token] ?? 0n))}</td>
+                          <td>
+                            <button className="btn btn-sm btn-outline" onClick={() => setSelected(c)}>Trade</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
+          )}
+
+          <div className="terminal-footer">
+            <span>01 — 01</span>
+            <span className="terminal-dots">● ○ ○</span>
+            <a href="/app">Back to board ↗</a>
+          </div>
+        </div>
       </section>
 
       <Footer launchpad={LAUNCHPAD} explorer={EXPLORER} />

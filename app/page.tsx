@@ -137,7 +137,7 @@ export default function Landing() {
             <i className="dot" />
             <b>Live on Arc Testnet</b> · Powered by USDC
           </span>
-          <span className="hero-eyebrow rise d1">The meme launchpad built natively on Arc</span>
+          <span className="hero-eyebrow rise d1">The <b>meme launchpad</b> built natively on Arc</span>
           <h1 className="rise d2">
             Launch culture.<br />
             <span>Program value.</span>
@@ -371,7 +371,7 @@ export default function Landing() {
         <div className="shell">
           <div className="pixel-terminal">
             <div className="terminal-topline">
-              <div className="terminal-brand"><span className="pixel-mark">◆</span><span>ARCPAD / LIVE CURVES</span></div>
+              <div className="terminal-brand"><span className="pixel-mark">◆</span><span>CITIZEN / LIVE CURVES</span></div>
               <span className="terminal-status"><i /> LIVE ON ARC</span>
             </div>
             <div className="graduated-head">
@@ -457,7 +457,7 @@ export default function Landing() {
           <div className="faq-item">
             <b>Is this real money?</b>
             <p>
-              No. ArcPad runs on Arc testnet. You trade with testnet USDC from{" "}
+              No. Citizen runs on Arc testnet. You trade with testnet USDC from{" "}
               <a href={FAUCET} target="_blank" rel="noreferrer">Circle&apos;s faucet</a>,
               and tokens have no monetary value.
             </p>
@@ -465,7 +465,7 @@ export default function Landing() {
           <div className="faq-item">
             <b>What wallet do I need?</b>
             <p>
-              Any injected EVM wallet such as MetaMask. ArcPad adds the Arc
+              Any injected EVM wallet such as MetaMask. Citizen adds the Arc
               Testnet network for you on first use; gas is paid in testnet
               USDC.
             </p>

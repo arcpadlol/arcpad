@@ -321,7 +321,7 @@ export function TradeModal({
       <section className="modal modal-terminal">
         <button className="modal-x" aria-label="Close" onClick={onClose}><CloseIcon /></button>
         <div className="terminal-topline">
-          <div className="terminal-brand"><span className="pixel-mark">◆</span><span>ARCPAD / TRADE</span></div>
+          <div className="terminal-brand"><span className="pixel-mark">◆</span><span>CITIZEN / TRADE</span></div>
           <span className="terminal-status"><i /> {coin.graduated ? "GRADUATED" : "CURVE LIVE"}</span>
         </div>
         <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 10 }}>
@@ -598,7 +598,7 @@ export function CreateModal({
       <section className="modal modal-terminal">
         <button className="modal-x" aria-label="Close" onClick={onClose}><CloseIcon /></button>
         <div className="terminal-topline">
-          <div className="terminal-brand"><span className="pixel-mark">◆</span><span>ARCPAD / NEW LAUNCH</span></div>
+          <div className="terminal-brand"><span className="pixel-mark">◆</span><span>CITIZEN / NEW LAUNCH</span></div>
           <span className="terminal-status"><i /> LIVE ON ARC</span>
         </div>
         <span className="pixel-kicker">LIVE BONDING CURVES</span>

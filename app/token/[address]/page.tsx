@@ -34,7 +34,7 @@ export default function TokenDetailPage() {
       <Link href="/app" className="detail-back">← Back to tokens</Link>
       <div className="pixel-terminal">
       <div className="terminal-topline">
-        <div className="terminal-brand"><span className="pixel-mark">◆</span><span>ARCPAD / TOKEN DETAIL</span></div>
+        <div className="terminal-brand"><span className="pixel-mark">◆</span><span>CITIZEN / TOKEN DETAIL</span></div>
         <span className="terminal-status"><i/> LIVE ON ARC</span>
       </div>
       <div className="detail-hero">
