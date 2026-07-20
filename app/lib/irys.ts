@@ -2,7 +2,7 @@
 
 // Permanent coin metadata on Irys (Arweave). Uploads under 100 KiB are free
 // (Irys sponsors them) and need only a wallet signature, so storing a logo and
-// description costs nothing. The ArcPad contract has no metadata field, so
+// description costs nothing. The Citizen contract has no metadata field, so
 // uploads are tagged with the coin address and discovered via Irys GraphQL;
 // authenticity comes from the upload being signed by the coin creator's own
 // wallet (verified server-side in /api/meta against the contract state).
@@ -15,7 +15,7 @@ import { compressImage } from "./imgcompress";
 const IRYS_GATEWAY = "https://gateway.irys.xyz";
 
 /** Tag names shared with /api/meta. */
-export const META_APP_TAG = "ArcPad-Meta";
+export const META_APP_TAG = "Citizen-Meta";
 
 export type CoinMetaFields = {
   description?: string;

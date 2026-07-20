@@ -10,7 +10,11 @@ import { LAUNCHPAD, launchpadAbi } from "../../lib/arcpad";
 const GRAPHQL = "https://uploader.irys.xyz/graphql";
 const GATEWAY = "https://gateway.irys.xyz";
 const ARC_RPC = "https://rpc.testnet.arc.network";
-const APP_TAG = "ArcPad-Meta";
+// Uploads are tagged Citizen-Meta since the rebrand. Everything published
+// before it carries the old tag, so the lookup accepts both and those coins
+// keep their description and logo.
+const APP_TAG = "Citizen-Meta";
+const LEGACY_APP_TAG = "ArcPad-Meta";
 const CACHE_MS = 60_000;
 
 type Meta = {
@@ -105,7 +109,7 @@ async function fetchMetaJson(id: string): Promise<Record<string, unknown> | null
 
 async function buildMetas(): Promise<Record<string, Meta>> {
   const query = `query {
-    transactions(tags: [{ name: "App-Name", values: ["${APP_TAG}"] }], first: 100, order: DESC) {
+    transactions(tags: [{ name: "App-Name", values: ["${APP_TAG}", "${LEGACY_APP_TAG}"] }], first: 100, order: DESC) {
       edges { node { id address tags { name value } } }
     }
   }`;
