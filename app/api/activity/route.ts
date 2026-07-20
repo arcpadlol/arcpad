@@ -10,7 +10,7 @@ import { LAUNCHPAD, launchpadAbi } from "../../lib/arcpad";
 // response with backoff, and cache the result so all visitors share it.
 
 const ARC_RPC = "https://rpc.testnet.arc.network";
-const DEPLOY_BLOCK = 52_256_000n;
+const DEPLOY_BLOCK = 52_811_000n;
 /** Arc public RPC caps eth_getLogs at a 10,000 block range. */
 const LOG_WINDOW = 9_500n;
 const CACHE_MS = 25_000;

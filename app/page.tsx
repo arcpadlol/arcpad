@@ -105,7 +105,7 @@ function LiveLaunchCard({ symbol, name, baseCap, time, target, accent, image }: 
       <div className="token-info"><span className="graduated-badge">BONDING LIVE</span><strong>{name}</strong><small>${symbol}</small></div>
       <div className="token-metrics"><span><b>${cap.toFixed(1)}k</b> MC</span><span>{time}</span></div>
       <div className="graduated-progress"><div><i><b /><b /><b /><b /></i></div><span>{progress.toFixed(1)}%</span></div>
-      <div className="token-lock"><span>CURVE ACTIVE</span><span>0x8eA7...Be131</span></div>
+      <div className="token-lock"><span>CURVE ACTIVE</span><span>0xeD4A...D955</span></div>
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 **Target:** `CitizenLaunchpad` and `CitizenToken`
 **Network:** Arc testnet (chain id 5042002)
-**Deployed & verified:** [`0xdf155bA386ab42cBBD0EE043cf9f6bA17E7A3ac3`](https://testnet.arcscan.app/address/0xdf155bA386ab42cBBD0EE043cf9f6bA17E7A3ac3)
+**Deployed & verified:** [`0xeD4A537F0B933ac4fa6Bb8733889ef8a0d8FD955`](https://testnet.arcscan.app/address/0xeD4A537F0B933ac4fa6Bb8733889ef8a0d8FD955)
 **Status:** Internal review complete, all findings resolved. No external third-party audit yet.
 
 ## Summary

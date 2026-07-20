@@ -4,7 +4,7 @@ Bonding-curve launchpad contracts for Arc testnet (chain 5042002). USDC-native, 
 
 ## Live deployment (Arc testnet)
 
-- CitizenLaunchpad: [`0xdf155bA386ab42cBBD0EE043cf9f6bA17E7A3ac3`](https://testnet.arcscan.app/address/0xdf155bA386ab42cBBD0EE043cf9f6bA17E7A3ac3) (verified, 2026-07-16)
+- CitizenLaunchpad: [`0xeD4A537F0B933ac4fa6Bb8733889ef8a0d8FD955`](https://testnet.arcscan.app/address/0xeD4A537F0B933ac4fa6Bb8733889ef8a0d8FD955) (verified, 2026-07-21)
 - Smoke-tested end to end on-chain: create, curve buy, graduation into a real UNITFLOW pool with locked LP, post-graduation buyback-and-burn through the pool, fee claims.
 - Note: UNITFLOW pools use `unitFlowV3SwapCallback` instead of the standard Uniswap callback name; the launchpad implements both.
 

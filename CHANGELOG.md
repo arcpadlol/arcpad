@@ -13,7 +13,7 @@ Newest entries first. Record only work that actually landed.
 
 ### Changed
 
-- Redeployed and re-verified the launchpad on Arc testnet at `0xdf155bA386ab42cBBD0EE043cf9f6bA17E7A3ac3`; frontend `LAUNCHPAD` and `DEPLOY_BLOCK` updated.
+- Redeployed and re-verified the launchpad on Arc testnet at `0xeD4A537F0B933ac4fa6Bb8733889ef8a0d8FD955`; frontend `LAUNCHPAD` and `DEPLOY_BLOCK` updated.
 
 ### Validation
 

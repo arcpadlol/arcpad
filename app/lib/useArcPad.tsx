@@ -13,7 +13,7 @@ import {
 } from "./arcpad";
 
 /** Deploy block of the launchpad; the activity endpoint reads logs from here. */
-export const DEPLOY_BLOCK = 52_256_000n;
+export const DEPLOY_BLOCK = 52_811_000n;
 
 declare global {
   interface Window {

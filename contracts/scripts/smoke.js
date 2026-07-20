@@ -3,7 +3,7 @@
 // UNITFLOW V3 -> post-graduation buyback through the real pool -> cleanup.
 const hre = require("hardhat");
 
-const PAD = process.env.PAD || "0xdf155bA386ab42cBBD0EE043cf9f6bA17E7A3ac3";
+const PAD = process.env.PAD || "0xeD4A537F0B933ac4fa6Bb8733889ef8a0d8FD955";
 const USDC = "0x3600000000000000000000000000000000000000";
 const TIER = BigInt(process.env.TIER || 10_000_000); // mini tier for testing
 

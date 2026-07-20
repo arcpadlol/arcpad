@@ -15,7 +15,7 @@ export const arcTestnet = defineChain({
   },
 });
 
-export const LAUNCHPAD = "0xdf155bA386ab42cBBD0EE043cf9f6bA17E7A3ac3" as const;
+export const LAUNCHPAD = "0xeD4A537F0B933ac4fa6Bb8733889ef8a0d8FD955" as const;
 export const USDC = "0x3600000000000000000000000000000000000000" as const;
 export const EXPLORER = "https://testnet.arcscan.app";
 export const FAUCET = "https://faucet.circle.com";
