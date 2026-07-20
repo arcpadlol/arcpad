@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import {
+  APP_URL,
   EXPLORER,
   FAUCET,
   LAUNCHPAD,
@@ -148,10 +149,10 @@ export default function Landing() {
             permanently locked DEX liquidity—all enforced onchain.
           </p>
           <div className="hero-ctas rise d3">
-            <Link className="btn btn-gold btn-lg" href="/app">
+            <a className="btn btn-gold btn-lg" href={APP_URL}>
               Explore launches <span className="arr"><ArrowRightIcon /></span>
-            </Link>
-            <Link className="btn btn-outline btn-lg" href="/create">Launch a token</Link>
+            </a>
+            <a className="btn btn-outline btn-lg" href={`${APP_URL}/create`}>Launch a token</a>
           </div>
           <div className="trust-row rise d4">
             <a
@@ -211,9 +212,9 @@ export default function Landing() {
                   <b>{(Number(featured.progressBps) / 100).toFixed(1)}%</b>
                 </div>
               </div>
-              <Link className="btn btn-primary" href="/app">
+              <a className="btn btn-primary" href={APP_URL}>
                 View market <span className="arr"><ArrowRightIcon /></span>
-              </Link>
+              </a>
             </div>
           )}
         </div>
@@ -388,7 +389,7 @@ export default function Landing() {
               <LiveLaunchCard symbol="ARC" name="Arc Signal" baseCap={4.7} time="1h ago" target={47} accent="#79e8bc" image="/tokens/arc-signal.webp" />
               <LiveLaunchCard symbol="PXL" name="Pixel Protocol" baseCap={19.2} time="3h ago" target={92} accent="#ff9fca" image="/tokens/pixel-protocol.webp" />
             </div>
-            <div className="terminal-footer"><span>01 — 01</span><span className="terminal-dots">● ○ ○</span><a href="/app">Explore all launches ↗</a></div>
+            <div className="terminal-footer"><span>01 — 01</span><span className="terminal-dots">● ○ ○</span><a href={APP_URL}>Explore all launches ↗</a></div>
           </div>
         </div>
       </section>
@@ -516,13 +517,13 @@ export default function Landing() {
             <h2>Ready to launch on Arc?</h2>
             <p>Deploy a coin for a cent, program its fees, let the curve do the rest.</p>
           </div>
-          <Link className="btn btn-gold btn-lg" href="/create">
+          <a className="btn btn-gold btn-lg" href={`${APP_URL}/create`}>
             Create a coin <span className="arr"><ArrowRightIcon /></span>
-          </Link>
+          </a>
         </div>
       </section>
 
-      <Footer launchpad={LAUNCHPAD} explorer={EXPLORER} />
+      <Footer launchpad={LAUNCHPAD} explorer={EXPLORER} landing />
     </main>
   );
 }

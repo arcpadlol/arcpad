@@ -24,7 +24,7 @@ const spaceMono = localFont({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.arcpad.lol"),
+  metadataBase: new URL("https://www.citizenpad.lol"),
   title: "Citizen — The USDC-native meme launchpad on Arc",
   description:
     "Launch and trade meme tokens on Arc testnet. USDC bonding curves, programmable fee vaults, transparent graduation to locked DEX liquidity.",

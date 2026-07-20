@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { EXPLORER, FAUCET, GITHUB_URL, X_URL, short } from "../lib/arcpad";
+import { APP_URL, EXPLORER, FAUCET, GITHUB_URL, X_URL, short } from "../lib/arcpad";
 import { useWallet } from "../lib/useArcPad";
 
 export function ArcMark({ size = 26 }: { size?: number }) {
@@ -117,7 +117,7 @@ function ConnectControl({ wallet, landing = false }: { wallet: ReturnType<typeof
   const [menu, setMenu] = useState(false);
 
   if (landing) {
-    return <Link className="btn btn-primary open-app-btn" href="/app">Open App <ArrowRightIcon /></Link>;
+    return <a className="btn btn-primary open-app-btn" href={APP_URL}>Open App <ArrowRightIcon /></a>;
   }
   if (!wallet.connected) {
     return (
@@ -190,16 +190,24 @@ export function Topbar({ wallet, landing = false }: { wallet: ReturnType<typeof 
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
+  // On the marketing landing (root domain) the nav points across to the
+  // product on the app subdomain; inside the app it stays client-side routing.
   const links = (extraClass = "") =>
     NAV.map((item) => {
       const active = pathname === item.href || pathname.startsWith(item.href + "/");
+      const cls = `${active ? "active" : ""} ${extraClass}`.trim();
+      if (landing) {
+        // The app subdomain already serves the board at its root, so link
+        // there directly instead of the redundant /app path.
+        const href = item.href === "/app" ? APP_URL : `${APP_URL}${item.href}`;
+        return (
+          <a key={item.href} className={cls} href={href} onClick={() => setOpen(false)}>
+            {item.label}
+          </a>
+        );
+      }
       return (
-        <Link
-          key={item.href}
-          className={`${active ? "active" : ""} ${extraClass}`.trim()}
-          href={item.href}
-          onClick={() => setOpen(false)}
-        >
+        <Link key={item.href} className={cls} href={item.href} onClick={() => setOpen(false)}>
           {item.label}
         </Link>
       );
@@ -248,7 +256,24 @@ export function Topbar({ wallet, landing = false }: { wallet: ReturnType<typeof 
   );
 }
 
-export function Footer({ launchpad, explorer }: { launchpad: string; explorer: string }) {
+export function Footer({
+  launchpad,
+  explorer,
+  landing = false,
+}: {
+  launchpad: string;
+  explorer: string;
+  landing?: boolean;
+}) {
+  // Mirror the topbar: from the landing every product link crosses over to the
+  // app subdomain, so the root domain only ever serves the marketing page.
+  const to = (href: string) => (href === "/app" ? APP_URL : `${APP_URL}${href}`);
+  const productLink = (href: string, label: string) =>
+    landing ? (
+      <a key={href} href={to(href)}>{label}</a>
+    ) : (
+      <Link key={href} href={href}>{label}</Link>
+    );
   return (
     <footer>
       <div className="shell foot-inner">
@@ -257,11 +282,11 @@ export function Footer({ launchpad, explorer }: { launchpad: string; explorer: s
           <span className="logo-name">Citi<b>zen</b></span>
         </Link>
         <div className="foot-links">
-          <Link href="/app">Board</Link>
-          <Link href="/create">Create</Link>
-          <Link href="/activity">Activity</Link>
-          <Link href="/portfolio">Portfolio</Link>
-          <Link href="/docs">Docs</Link>
+          {productLink("/app", "Board")}
+          {productLink("/create", "Create")}
+          {productLink("/activity", "Activity")}
+          {productLink("/portfolio", "Portfolio")}
+          {productLink("/docs", "Docs")}
           <a href={`${explorer}/address/${launchpad}`} target="_blank" rel="noreferrer">Contract</a>
           <a href={FAUCET} target="_blank" rel="noreferrer">Faucet</a>
           <a href="https://docs.arc.network" target="_blank" rel="noreferrer">Arc docs</a>

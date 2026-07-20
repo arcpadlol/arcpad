@@ -24,6 +24,13 @@ export const FAUCET = "https://faucet.circle.com";
 export const X_URL = "https://x.com/Arcpad_";
 export const GITHUB_URL = "https://github.com/arcpadlol/arcpad";
 
+/**
+ * The product lives on its own subdomain so the marketing landing can keep its
+ * heavy animated hero while the app stays light. The landing links across to
+ * this host; every route below it is served by the same Next app.
+ */
+export const APP_URL = "https://app.citizenpad.lol";
+
 export const PRESETS = [
   { key: 0, name: "Grow", split: "37.5% creator · 37.5% bounties · 25% treasury" },
   { key: 1, name: "Agent", split: "62.5% agent · 25% creator · 12.5% bounties" },
