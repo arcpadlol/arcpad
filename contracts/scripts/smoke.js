@@ -9,7 +9,7 @@ const TIER = BigInt(process.env.TIER || 10_000_000); // mini tier for testing
 
 async function main() {
   const [signer] = await hre.ethers.getSigners();
-  const pad = await hre.ethers.getContractAt("ArcPadLaunchpad", PAD);
+  const pad = await hre.ethers.getContractAt("CitizenLaunchpad", PAD);
   const usdc = await hre.ethers.getContractAt(
     "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20",
     USDC

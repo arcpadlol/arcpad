@@ -9,10 +9,10 @@ import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-import {ArcPadToken} from "./ArcPadToken.sol";
+import {CitizenToken} from "./CitizenToken.sol";
 import {IUniswapV3Factory, IUniswapV3Pool, INonfungiblePositionManager} from "./interfaces/IUniswapV3.sol";
 
-/// @title ArcPadLaunchpad
+/// @title CitizenLaunchpad
 /// @notice USDC-native bonding-curve launchpad for Arc with programmable fee vaults.
 ///
 ///         Economics
@@ -36,7 +36,7 @@ import {IUniswapV3Factory, IUniswapV3Pool, INonfungiblePositionManager} from "./
 ///
 ///         Arc specifics: USDC is used strictly through its ERC-20 interface
 ///         (0x3600...0000, 6 decimals). No native value is ever handled.
-contract ArcPadLaunchpad is Ownable2Step, Pausable, ReentrancyGuard {
+contract CitizenLaunchpad is Ownable2Step, Pausable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     // ---------------------------------------------------------------- types
@@ -248,7 +248,7 @@ contract ArcPadLaunchpad is Ownable2Step, Pausable, ReentrancyGuard {
             claimableFees[protocolTreasury] += creationFee;
         }
 
-        token = address(new ArcPadToken(name, symbol, TOTAL_SUPPLY));
+        token = address(new CitizenToken(name, symbol, TOTAL_SUPPLY));
 
         uint128 virtualUsdc0 = uint128(
             (raiseTarget * RAISE_TO_VIRTUAL_NUM) / RAISE_TO_VIRTUAL_DEN
@@ -405,7 +405,7 @@ contract ArcPadLaunchpad is Ownable2Step, Pausable, ReentrancyGuard {
             c.realUsdc += uint128(usdcAmount);
             c.tokensSold += uint128(tokensBurned);
 
-            ArcPadToken(token).burn(tokensBurned);
+            CitizenToken(token).burn(tokensBurned);
             emit Buyback(token, usdcAmount, tokensBurned);
 
             if (c.tokensSold >= CURVE_SUPPLY) _graduate(token, c);
@@ -419,7 +419,7 @@ contract ArcPadLaunchpad is Ownable2Step, Pausable, ReentrancyGuard {
                 abi.encode(token)
             );
             tokensBurned = uint256(-(zeroForOne ? amount1 : amount0));
-            ArcPadToken(token).burn(tokensBurned);
+            CitizenToken(token).burn(tokensBurned);
             emit Buyback(token, usdcAmount, tokensBurned);
         }
 
@@ -489,7 +489,7 @@ contract ArcPadLaunchpad is Ownable2Step, Pausable, ReentrancyGuard {
         );
         (usdcAmount, tokensBurned) = address(usdc) < token ? (a0, a1) : (a1, a0);
 
-        if (tokensBurned > 0) ArcPadToken(token).burn(tokensBurned);
+        if (tokensBurned > 0) CitizenToken(token).burn(tokensBurned);
         if (usdcAmount > 0) {
             uint256 totalFeeBps = vaultFeeBps + platformFeeBps;
             uint256 platformCut = totalFeeBps == 0
@@ -516,7 +516,7 @@ contract ArcPadLaunchpad is Ownable2Step, Pausable, ReentrancyGuard {
     }
 
     /// @dev Route the vault share according to the coin's preset. Percentages
-    ///      mirror the ArcPad UI copy, normalized to 100% of the vault share.
+    ///      mirror the Citizen UI copy, normalized to 100% of the vault share.
     ///      Rounding dust goes to the platform.
     function _routeVaultFee(Coin storage c, uint256 amount) private {
         if (amount == 0) return;
@@ -621,7 +621,7 @@ contract ArcPadLaunchpad is Ownable2Step, Pausable, ReentrancyGuard {
             ? (used0, used1)
             : (used1, used0);
         uint256 tokenDust = tokensToLp - usedToken;
-        if (tokenDust > 0) ArcPadToken(token).burn(tokenDust);
+        if (tokenDust > 0) CitizenToken(token).burn(tokenDust);
         uint256 usdcDust = available - usedUsdc;
         if (usdcDust > 0) claimableFees[protocolTreasury] += usdcDust;
 

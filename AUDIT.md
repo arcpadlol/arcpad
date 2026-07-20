@@ -1,20 +1,20 @@
-# ArcPad Security Review
+# Citizen Security Review
 
-**Target:** `ArcPadLaunchpad` and `ArcPadToken`
+**Target:** `CitizenLaunchpad` and `CitizenToken`
 **Network:** Arc testnet (chain id 5042002)
 **Deployed & verified:** [`0xdf155bA386ab42cBBD0EE043cf9f6bA17E7A3ac3`](https://testnet.arcscan.app/address/0xdf155bA386ab42cBBD0EE043cf9f6bA17E7A3ac3)
 **Status:** Internal review complete, all findings resolved. No external third-party audit yet.
 
 ## Summary
 
-ArcPad's launchpad contracts underwent a full internal security review: a manual,
+Citizen's launchpad contracts underwent a full internal security review: a manual,
 adversarial read of the curve arithmetic, fee accounting, graduation path,
 buyback logic, and every owner power, alongside the Hardhat test suite. The
 review found one critical, one medium, and two low-severity issues. All of them
 were fixed and the fixes verified by the test suite (14 passing) before the
 contract was redeployed and re-verified on Arcscan.
 
-This document is a public summary. ArcPad runs on Arc testnet only: tokens are
+This document is a public summary. Citizen runs on Arc testnet only: tokens are
 speculative test assets with no monetary value, and the contracts should not
 hold real funds until an independent external audit is complete.
 
@@ -77,8 +77,8 @@ the continuity break-even, so the pool always opens at the exact final price.
 
 ## Disclaimer
 
-This is an internal, best-effort review by the ArcPad team, not a formal audit by
+This is an internal, best-effort review by the Citizen team, not a formal audit by
 an external security firm. The UNITFLOW (Uniswap V3 fork) infrastructure it builds
-on was not reviewed and is assumed to behave like canonical Uniswap V3. ArcPad is
+on was not reviewed and is assumed to behave like canonical Uniswap V3. Citizen is
 testnet-only; obtain an independent external audit before any mainnet deployment
 that holds real value.

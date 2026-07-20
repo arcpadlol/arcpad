@@ -3,12 +3,12 @@ pragma solidity 0.8.28;
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-/// @title ArcPadToken
-/// @notice Fixed-supply meme token launched through ArcPadLaunchpad.
+/// @title CitizenToken
+/// @notice Fixed-supply meme token launched through CitizenLaunchpad.
 ///         The full supply is minted to the launchpad at creation; the
 ///         launchpad sells 80% on the bonding curve and pairs the rest
 ///         as DEX liquidity at graduation. No owner, no further minting.
-contract ArcPadToken is ERC20 {
+contract CitizenToken is ERC20 {
     address public immutable launchpad;
 
     constructor(

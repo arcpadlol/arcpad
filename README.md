@@ -1,12 +1,12 @@
-# ArcPad
+# Citizen
 
 Launch culture. Program value. The meme launchpad built natively on Arc.
 
-Live at [www.arcpad.lol](https://www.arcpad.lol)
+Live at [citizenpad.lol](https://citizenpad.lol)
 
-![ArcPad](docs/preview.png)
+![Citizen](docs/preview.png)
 
-Every coin on ArcPad sells on a USDC bonding curve, routes its trading fees
+Every coin on Citizen sells on a USDC bonding curve, routes its trading fees
 through a programmable vault, and graduates into DEX liquidity that nobody can
 pull. The contract enforces all of it.
 
@@ -28,7 +28,7 @@ pull. The contract enforces all of it.
 
 | Contract | Address |
 |---|---|
-| ArcPadLaunchpad (verified) | [`0xdf155bA386ab42cBBD0EE043cf9f6bA17E7A3ac3`](https://testnet.arcscan.app/address/0xdf155bA386ab42cBBD0EE043cf9f6bA17E7A3ac3) |
+| CitizenLaunchpad (verified) | [`0xdf155bA386ab42cBBD0EE043cf9f6bA17E7A3ac3`](https://testnet.arcscan.app/address/0xdf155bA386ab42cBBD0EE043cf9f6bA17E7A3ac3) |
 | USDC (ERC-20 interface, 6 decimals) | `0x3600000000000000000000000000000000000000` |
 | UNITFLOW V3 factory (graduation venue) | `0xAb6A8AAb7d490007634ef59d424b5d89688a1971` |
 | UNITFLOW position manager (locked LP) | `0x77c39eB310BE31e60068CE29855F83359bf85fc4` |
@@ -40,7 +40,7 @@ Every trade, fee split and graduation is a public transaction on Arc.
 - `app/` — Next.js frontend: landing, coin board with trending and cards/table
   views, create flow, activity feed, portfolio with on-chain fee claims, and a
   rate-limit-aware JSON-RPC proxy at `app/api/rpc`.
-- `contracts/` — Hardhat workspace: `ArcPadLaunchpad` and `ArcPadToken`, deploy
+- `contracts/` — Hardhat workspace: `CitizenLaunchpad` and `CitizenToken`, deploy
   script with automatic Arcscan verification, and the test suite.
 
 ## Frontend
@@ -68,6 +68,6 @@ that file.
 
 ## Disclaimer
 
-ArcPad runs on Arc testnet and is not affiliated with Circle. Tokens are
+Citizen runs on Arc testnet and is not affiliated with Circle. Tokens are
 speculative test assets with no monetary value. Contracts are unaudited; do not
 use them to hold real value.

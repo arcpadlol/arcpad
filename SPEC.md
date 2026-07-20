@@ -1,17 +1,17 @@
-# ArcPad — Product & Technical Specification
+# Citizen — Product & Technical Specification
 
-**Owner:** ArcPad team  
+**Owner:** Citizen team  
 **Status:** Draft  
 **Version:** 0.1  
 **Last updated:** 2026-07-16
 
 ## Executive summary
 
-ArcPad is an Arc-native meme-token launchpad concept where USDC trading fees can fund programmable creator, bounty, buyback, burn, treasury, or agent vaults. The current deployed release validates positioning and interaction design; it does not execute blockchain transactions.
+Citizen is an Arc-native meme-token launchpad concept where USDC trading fees can fund programmable creator, bounty, buyback, burn, treasury, or agent vaults. The current deployed release validates positioning and interaction design; it does not execute blockchain transactions.
 
 ## Problem and opportunity
 
-Most meme launchpads optimize token creation and speculation but give projects limited control over recurring fee flows. ArcPad explores whether programmable, visible USDC fee routing can make meme economies more durable and legible.
+Most meme launchpads optimize token creation and speculation but give projects limited control over recurring fee flows. Citizen explores whether programmable, visible USDC fee routing can make meme economies more durable and legible.
 
 ## Target users
 

@@ -36,7 +36,7 @@ function quoteBuy(vU, vT, sold, usdcIn) {
   return { out, refund, newVU, net };
 }
 
-describe("ArcPadLaunchpad", () => {
+describe("CitizenLaunchpad", () => {
   let owner, treasury, alice, bob, bounty;
   let usdc, factory, posMgr, pad;
 
@@ -48,7 +48,7 @@ describe("ArcPadLaunchpad", () => {
       await ethers.getContractFactory("MockPositionManager")
     ).deploy();
     pad = await (
-      await ethers.getContractFactory("ArcPadLaunchpad")
+      await ethers.getContractFactory("CitizenLaunchpad")
     ).deploy(usdc, factory, posMgr, treasury.address, owner.address);
 
     for (const who of [alice, bob]) {
@@ -68,7 +68,7 @@ describe("ArcPadLaunchpad", () => {
 
   it("creates a coin: fee charged, 1B supply held by launchpad", async () => {
     const token = await createCoin();
-    const erc = await ethers.getContractAt("ArcPadToken", token);
+    const erc = await ethers.getContractAt("CitizenToken", token);
     expect(await erc.totalSupply()).to.equal(TOTAL_SUPPLY);
     expect(await erc.balanceOf(pad)).to.equal(TOTAL_SUPPLY);
     expect(await pad.claimableFees(treasury.address)).to.equal(U(0.01));
@@ -81,7 +81,7 @@ describe("ArcPadLaunchpad", () => {
 
   it("buys along the curve with correct math and fee routing (Grow)", async () => {
     const token = await createCoin(0); // Grow
-    const erc = await ethers.getContractAt("ArcPadToken", token);
+    const erc = await ethers.getContractAt("CitizenToken", token);
     const usdcIn = U(100);
     const q = quoteBuy(V_USDC_0, V_TOKEN_0, 0n, usdcIn);
 
@@ -116,7 +116,7 @@ describe("ArcPadLaunchpad", () => {
 
   it("sells back to the curve for slightly less (fees)", async () => {
     const token = await createCoin();
-    const erc = await ethers.getContractAt("ArcPadToken", token);
+    const erc = await ethers.getContractAt("CitizenToken", token);
     await pad.connect(bob).buy(token, U(500), 0);
     const bal = await erc.balanceOf(bob.address);
 
@@ -147,7 +147,7 @@ describe("ArcPadLaunchpad", () => {
 
   it("graduates: refund, locked LP at continuity price, fees routed", async () => {
     const token = await createCoin();
-    const erc = await ethers.getContractAt("ArcPadToken", token);
+    const erc = await ethers.getContractAt("CitizenToken", token);
     const usdcIn = U(20_000);
     const q = quoteBuy(V_USDC_0, V_TOKEN_0, 0n, usdcIn);
     expect(q.out).to.equal(CURVE_SUPPLY);
@@ -214,7 +214,7 @@ describe("ArcPadLaunchpad", () => {
 
   it("Burn preset accrues buyback budget and burns supply pre-graduation", async () => {
     const token = await createCoin(2); // Burn
-    const erc = await ethers.getContractAt("ArcPadToken", token);
+    const erc = await ethers.getContractAt("CitizenToken", token);
     await pad.connect(bob).buy(token, U(1_000), 0);
 
     const fee = (U(1_000) * TOTAL_FEE) / BPS;
@@ -239,7 +239,7 @@ describe("ArcPadLaunchpad", () => {
 
   it("executes post-graduation buyback through the pool", async () => {
     const token = await createCoin(2); // Burn
-    const erc = await ethers.getContractAt("ArcPadToken", token);
+    const erc = await ethers.getContractAt("CitizenToken", token);
     await pad.connect(bob).buy(token, U(20_000), 0); // graduates
     const c = await pad.coins(token);
     expect(c.graduated).to.equal(true);
@@ -255,7 +255,7 @@ describe("ArcPadLaunchpad", () => {
 
   it("collects LP fees, burns token side, splits USDC side", async () => {
     const token = await createCoin(0);
-    const erc = await ethers.getContractAt("ArcPadToken", token);
+    const erc = await ethers.getContractAt("CitizenToken", token);
     await pad.connect(bob).buy(token, U(20_000), 0); // graduates
 
     // simulate accrued pool fees inside the position manager
@@ -294,7 +294,7 @@ describe("ArcPadLaunchpad", () => {
 
   it("pause blocks create and buy but never sell or claim", async () => {
     const token = await createCoin(0);
-    const erc = await ethers.getContractAt("ArcPadToken", token);
+    const erc = await ethers.getContractAt("CitizenToken", token);
     await pad.connect(bob).buy(token, U(100), 0);
     await pad.connect(owner).pause();
 

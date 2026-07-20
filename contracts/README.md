@@ -1,17 +1,17 @@
-# ArcPad Contracts
+# Citizen Contracts
 
 Bonding-curve launchpad contracts for Arc testnet (chain 5042002). USDC-native, with programmable fee vaults and automatic graduation to UNITFLOW (Uniswap V3 compatible) liquidity.
 
 ## Live deployment (Arc testnet)
 
-- ArcPadLaunchpad: [`0xdf155bA386ab42cBBD0EE043cf9f6bA17E7A3ac3`](https://testnet.arcscan.app/address/0xdf155bA386ab42cBBD0EE043cf9f6bA17E7A3ac3) (verified, 2026-07-16)
+- CitizenLaunchpad: [`0xdf155bA386ab42cBBD0EE043cf9f6bA17E7A3ac3`](https://testnet.arcscan.app/address/0xdf155bA386ab42cBBD0EE043cf9f6bA17E7A3ac3) (verified, 2026-07-16)
 - Smoke-tested end to end on-chain: create, curve buy, graduation into a real UNITFLOW pool with locked LP, post-graduation buyback-and-burn through the pool, fee claims.
 - Note: UNITFLOW pools use `unitFlowV3SwapCallback` instead of the standard Uniswap callback name; the launchpad implements both.
 
 ## Contracts
 
-- `ArcPadToken.sol` — fixed-supply 1,000,000,000 token (18 decimals), fully minted to the launchpad, burnable, no owner.
-- `ArcPadLaunchpad.sol` — creation, bonding curve, fee vaults, buybacks, graduation, locked LP, LP fee harvesting.
+- `CitizenToken.sol` — fixed-supply 1,000,000,000 token (18 decimals), fully minted to the launchpad, burnable, no owner.
+- `CitizenLaunchpad.sol` — creation, bonding curve, fee vaults, buybacks, graduation, locked LP, LP fee harvesting.
 
 ## Economics
 

@@ -6,7 +6,7 @@ async function main() {
   const usdc = await hre.ethers.deployContract("MockUSDC");
   const factory = await hre.ethers.deployContract("MockV3Factory");
   const posMgr = await hre.ethers.deployContract("MockPositionManager");
-  const pad = await hre.ethers.deployContract("ArcPadLaunchpad", [
+  const pad = await hre.ethers.deployContract("CitizenLaunchpad", [
     usdc, factory, posMgr, owner.address, owner.address,
   ]);
 

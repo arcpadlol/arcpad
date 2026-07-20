@@ -1,4 +1,4 @@
-# ArcPad Changelog
+# Citizen Changelog
 
 Newest entries first. Record only work that actually landed.
 
@@ -34,7 +34,7 @@ Newest entries first. Record only work that actually landed.
 - Full visual redesign to a light premium system: paper background, near-black navy ink, Arc blue from the brand mark, gold reserved for primary actions; pill buttons, 20px card radius, soft shadows; centered hero with stat tiles and a featured market card.
 - All icons are inline custom SVGs; emoji and typographic glyph icons removed site-wide.
 - viem transport now batches JSON-RPC calls (`batch.wait`) with patient retries; activity log reads are best effort and no longer blank the board on failure.
-- Canonical domain set to https://www.arcpad.lol in metadata.
+- Canonical domain set to https://citizenpad.lol in metadata.
 
 ### Validation
 
@@ -63,7 +63,7 @@ Newest entries first. Record only work that actually landed.
 
 ### Added
 
-- `contracts/` hardhat workspace with `ArcPadToken` and `ArcPadLaunchpad`: USDC bonding curve (constant product, virtual reserves), creator-selected raise targets (3k/5k/10k/25k USDC), 1.5% trade fee split 1% vault preset + 0.5% platform, buyback-and-burn, graduation to a locked full-range UNITFLOW V3 position at curve-continuous price, LP fee harvesting through the vault presets, pause, pull-based fee claims.
+- `contracts/` hardhat workspace with `CitizenToken` and `CitizenLaunchpad`: USDC bonding curve (constant product, virtual reserves), creator-selected raise targets (3k/5k/10k/25k USDC), 1.5% trade fee split 1% vault preset + 0.5% platform, buyback-and-burn, graduation to a locked full-range UNITFLOW V3 position at curve-continuous price, LP fee harvesting through the vault presets, pause, pull-based fee claims.
 - Deploy script with automatic Arcscan (Blockscout) verification; test suite (12 cases) covering curve math, fee routing, graduation, buybacks, and admin controls.
 
 ### Validation
@@ -78,14 +78,14 @@ Newest entries first. Record only work that actually landed.
 
 - Contributor workflow, pull request template, deployment guide, specification, project memory, and agent maintenance rules.
 - GitHub `main` and `develop` branches and Vercel repository connection.
-- Repository ownership moved to the ArcPad team account at `arcpadlol/arcpad-web`.
+- Repository ownership moved to the Citizen team account at `arcpadlol/arcpad-web`.
 
 ### Changed
 
-- Replaced the starter README with ArcPad-specific local setup and collaboration guidance.
+- Replaced the starter README with Citizen-specific local setup and collaboration guidance.
 - Replaced the vinext runtime scripts with standard Next.js and local Geist fonts for direct GitHub deployment.
 
-## 2026-07-16 — ArcPad MVP
+## 2026-07-16 — Citizen MVP
 
 ### Added
 

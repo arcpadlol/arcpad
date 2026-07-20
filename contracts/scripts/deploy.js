@@ -24,10 +24,10 @@ async function main() {
     treasury,
     deployer.address,
   ];
-  const pad = await hre.ethers.deployContract("ArcPadLaunchpad", args);
+  const pad = await hre.ethers.deployContract("CitizenLaunchpad", args);
   await pad.waitForDeployment();
   const addr = await pad.getAddress();
-  console.log("ArcPadLaunchpad:", addr);
+  console.log("CitizenLaunchpad:", addr);
   console.log("Explorer:", `https://testnet.arcscan.app/address/${addr}`);
 
   // Always verify immediately (house rule).

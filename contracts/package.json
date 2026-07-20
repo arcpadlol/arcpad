@@ -1,8 +1,8 @@
 {
-  "name": "arcpad-contracts",
+  "name": "citizen-contracts",
   "version": "0.1.0",
   "private": true,
-  "description": "ArcPad bonding-curve launchpad contracts for Arc testnet",
+  "description": "Citizen bonding-curve launchpad contracts for Arc testnet",
   "scripts": {
     "build": "hardhat compile",
     "test": "hardhat test",
