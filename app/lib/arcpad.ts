@@ -22,7 +22,7 @@ export const FAUCET = "https://faucet.circle.com";
 
 /** Official links. Leave X_URL empty to hide the icon until the handle exists. */
 export const X_URL = "https://x.com/Arcpad_";
-export const GITHUB_URL = "https://github.com/arcpadlol/arcpad";
+export const GITHUB_URL = "https://github.com/arcpadlol/citizen";
 
 /**
  * The product lives on its own subdomain so the marketing landing can keep its
